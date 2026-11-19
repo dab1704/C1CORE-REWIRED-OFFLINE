@@ -8,11 +8,27 @@
   <script src="/nabz/clinic.js" defer></script>
 </head>
 <body>
-  <header class="mast"><a href="/" class="wordmark">nabz<span>.</span></a><p id="server" role="status">Connecting to Flask…</p></header>
+  <header class="mast"><a href="/" class="wordmark" aria-label="Nabz landing page">nabz<span>.</span></a>
+    <nav aria-label="Clinic workspace">
+      <a href="/nabz/clinic.html" data-workspace="overview">Inbox</a>
+      <a href="/nabz/clinic.html?view=intake" data-workspace="intake">Intake</a>
+      <a href="/nabz/clinic.html?view=review" data-workspace="review">Review</a>
+      <a href="/nabz/clinic.html?view=patients" data-workspace="patients">Patient history</a>
+      <a href="/nabz/clinic.html?view=comparison" data-workspace="comparison">Comparison</a>
+    </nav>
+    <p id="server" role="status">Connecting…</p>
+  </header>
   <main>
     <section class="page-head">
-      <h1>Clinic <em>inbox.</em></h1>
-      <p>Review report screenshots and open patient history.</p>
+      <div class="head-copy"><h1 id="workspace-title">Clinic inbox</h1><p id="workspace-description">See which reports need review and open the original case.</p></div>
+      <div class="clinic-visual" id="clinic-visual" aria-hidden="true">
+        <img src="/nabz/clinic-room.webp" alt="" decoding="async">
+      </div>
+    </section>
+    <section class="panel heatmap" id="urgency" aria-labelledby="heat-title">
+      <div class="panel-head"><div><h2 id="heat-title">Urgency heatmap</h2><p>One tile per report. Select a tile to inspect the case.</p></div><button id="heat-refresh" class="quiet" type="button">Refresh</button></div>
+      <div id="heatmap-rows"></div>
+      <div class="heat-preview" aria-live="polite"><p id="heat-selection">Loading clinic reports…</p><a id="heat-open" class="action" hidden>Open report ↗</a></div>
     </section>
     <div class="workspace">
       <section class="panel" id="review-queue" aria-labelledby="queue-title">
@@ -52,10 +68,14 @@
       <div class="record-heading"><h3></h3><span class="priority"></span></div>
       <p class="metadata"></p><p class="finding"></p>
       <details><summary>Review report</summary>
-        <p class="source-note"></p><img class="source-image" hidden alt="Original uploaded lab screenshot">
-        <label class="review-check"><input type="checkbox"> I checked the original screenshot.</label>
-        <button type="button" class="action confirm" disabled>Confirm reading</button>
-        <p class="confirm-message" role="status"></p>
+        <div class="source-layout">
+          <div class="source-attachment"></div>
+          <div><div class="review-reading"></div>
+            <label class="review-check"><input type="checkbox"> I checked the original screenshot.</label>
+            <button type="button" class="action confirm" disabled>Confirm reading</button>
+            <p class="confirm-message" role="status"></p>
+          </div>
+        </div>
       </details>
     </li>
   </template>
