@@ -5,3 +5,4 @@ pypdfium2
 pillow
 requests
 twilio
+gunicorn

@@ -1,6 +1,11 @@
+import os
 import sqlite3
 
-DB_PATH = "nabz.db"
+from dotenv import load_dotenv
+
+load_dotenv()  # so DB_PATH can also come from .env
+
+DB_PATH = os.getenv("DB_PATH", "nabz.db")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS patients (

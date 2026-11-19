@@ -9,12 +9,13 @@ from flask import Flask, jsonify, request
 from PIL import Image
 
 import db
+import demo_seed
 import reader
 import rules
 
 load_dotenv()  # read keys from .env
 
-UPLOAD_DIR = "uploads"
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
 MAX_BYTES = 10 * 1024 * 1024  # 10 MB upload limit
 
 # Files in ./static are served at the site root (e.g. /index.html)
@@ -56,9 +57,10 @@ def save_original(data, ext):
 
 
 def find_or_create_patient(conn, name, age, sex):
-    # Same name + age + sex means the same patient
-    row = conn.execute("SELECT id FROM patients WHERE name = ? AND age IS ? AND sex IS ?",
-                       (name, age, sex)).fetchone()
+    # Same name + age + sex means the same patient (name case is ignored)
+    name = name.strip().title()  # "DEEPA RAO" -> "Deepa Rao"
+    row = conn.execute("SELECT id FROM patients WHERE name = ? COLLATE NOCASE"
+                       " AND age IS ? AND sex IS ?", (name, age, sex)).fetchone()
     if row:
         return row["id"]
     cur = conn.execute("INSERT INTO patients (name, age, sex) VALUES (?, ?, ?)",
@@ -172,10 +174,8 @@ def report_tests(conn, report_id):
     return [dict(r) for r in rows]
 
 
-@app.get("/api/inbox")
-def inbox():
-    # Every report: urgent, then unread (not machine-read yet), then the rest.
-    # Newest first inside a level.
+def inbox_items():
+    # Every report as a dict, with the "unread" rule applied
     with db.get_db() as conn:
         rows = conn.execute(
             "SELECT r.id, r.patient_id, p.name AS patient_name, r.level,"
@@ -187,9 +187,42 @@ def inbox():
     for i in items:
         if i["status"] == "needs_verification" and i["level"] != "urgent":
             i["level"] = "unread"  # a human must look; a keyword-urgent one stays urgent
-    items.sort(key=lambda i: i["received_at"] or "", reverse=True)
-    items.sort(key=lambda i: RANK.get(i["level"], 4))  # stable, keeps newest first
-    return jsonify(items)
+    return items
+
+
+def nabz_order(items):
+    # Urgent, unread, watch, routine; newest first inside a level
+    items = sorted(items, key=lambda i: i["received_at"] or "", reverse=True)
+    return sorted(items, key=lambda i: RANK.get(i["level"], 4))  # stable sort
+
+
+@app.get("/api/inbox")
+def inbox():
+    return jsonify(nabz_order(inbox_items()))
+
+
+@app.get("/api/compare")
+def compare():
+    # Proof panel: arrival order vs Nabz order, and where the urgent ones land
+    items = inbox_items()
+    arrival = sorted(items, key=lambda i: (i["received_at"] or "", i["id"]))
+    nabz = nabz_order(items)
+
+    def rows(order):
+        return [{"pos": n, "id": i["id"], "patient_name": i["patient_name"],
+                 "level": i["level"]} for n, i in enumerate(order, 1)]
+
+    def urgent_positions(order):
+        return [n for n, i in enumerate(order, 1) if i["level"] == "urgent"]
+
+    a, b = urgent_positions(arrival), urgent_positions(nabz)
+    return jsonify({
+        "total": len(items), "total_urgent": len(a),
+        "arrival_order": rows(arrival), "nabz_order": rows(nabz),
+        "urgent_in_first_10_arrival": sum(p <= 10 for p in a),
+        "urgent_in_first_10_nabz": sum(p <= 10 for p in b),
+        "last_urgent_pos_arrival": a[-1] if a else None,
+        "last_urgent_pos_nabz": b[-1] if b else None})
 
 
 def valid_fixes(fixes, test_ids):
@@ -251,8 +284,7 @@ def patient_detail(pid):
                     "rising": rules.rising_tests(history)})
 
 
-@app.post("/api/reset")
-def reset():
+def clear_data():
     # Demo reset: clear all report data and uploaded files, keep settings.
     # Seeded patients stay; patients created from uploads are removed.
     with db.get_db() as conn:
@@ -266,10 +298,20 @@ def reset():
             path = os.path.join(UPLOAD_DIR, name)
             if os.path.isfile(path):
                 os.remove(path)
+
+
+@app.post("/api/reset")
+def reset():
+    clear_data()
     return jsonify({"ok": True})
 
 
 db.init_db()  # create tables on startup
+try:  # an empty database gets the demo reports, so the site is never blank
+    demo_seed.load_seed_if_empty(UPLOAD_DIR)
+except Exception as e:
+    print("Demo seed not loaded:", e)
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    # Local run only. On Render, gunicorn starts the app (no debug mode).
+    app.run(debug=os.getenv("FLASK_DEBUG") == "1", port=int(os.getenv("PORT", 5000)))

@@ -6,6 +6,7 @@ import unittest
 
 import app
 import db
+import demo_seed
 import reader
 
 REPORTS = "test_data/reports/"
@@ -91,6 +92,49 @@ class ApiTest(unittest.TestCase):
         with db.get_db() as conn:
             self.assertEqual(conn.execute("SELECT COUNT(*) FROM settings").fetchone()[0],
                              len(db.SETTINGS))
+
+    def test_compare_arrival_vs_nabz(self):
+        empty = self.client.get("/api/compare").get_json()
+        self.assertEqual((empty["total"], empty["last_urgent_pos_nabz"]), (0, None))
+        # Seeded reports (no Gemini): arrival is routine, watch, urgent, unread
+        rows = [("routine", "pending"), ("watch", "pending"), ("urgent", "pending"),
+                ("watch", "needs_verification")]
+        with db.get_db() as conn:
+            for n, (level, status) in enumerate(rows, 1):
+                conn.execute("INSERT INTO reports (patient_id, received_at, source, status,"
+                             " level) VALUES (1, ?, 'test', ?, ?)", (f"2026-11-19T10:0{n}", status, level))
+        c = self.client.get("/api/compare").get_json()
+        self.assertEqual((c["total"], c["total_urgent"]), (4, 1))
+        self.assertEqual([r["id"] for r in c["arrival_order"]], [1, 2, 3, 4])
+        self.assertEqual([r["id"] for r in c["nabz_order"]], [3, 4, 2, 1])
+        self.assertEqual(c["nabz_order"][1]["level"], "unread")
+        self.assertEqual((c["last_urgent_pos_arrival"], c["last_urgent_pos_nabz"]), (3, 1))
+        self.assertEqual((c["urgent_in_first_10_arrival"], c["urgent_in_first_10_nabz"]), (1, 1))
+
+    def test_patient_name_is_title_case_and_matched_ignoring_case(self):
+        with db.get_db() as conn:
+            a = app.find_or_create_patient(conn, "DEEPA RAO", 38, "F")
+            b = app.find_or_create_patient(conn, "deepa rao", 38, "F")  # same patient
+            c = app.find_or_create_patient(conn, "Deepa Rao", 39, "F")  # other age
+            seeded = app.find_or_create_patient(conn, "ASHA VERMA", 54, "F")  # seeded row
+            name = conn.execute("SELECT name FROM patients WHERE id = ?", (a,)).fetchone()[0]
+        self.assertEqual((a, name), (b, "Deepa Rao"))
+        self.assertNotEqual(a, c)
+        self.assertEqual(seeded, 1)  # matched the seeded "Asha Verma", no duplicate
+
+    def test_demo_seed_round_trip(self):
+        tmp = tempfile.mkdtemp()
+        seed, images = os.path.join(tmp, "seed.json"), os.path.join(tmp, "images")
+        self.upload("report_10_A.png")
+        self.upload("report_09_C.png")
+        before = self.client.get("/api/inbox").get_json()
+        counts = demo_seed.export_seed(app.UPLOAD_DIR, seed, images)
+        self.assertEqual((counts["reports"], len(os.listdir(images))), (2, 2))
+        app.clear_data()  # empty database and no uploaded files
+        self.assertTrue(demo_seed.load_seed_if_empty(app.UPLOAD_DIR, seed, images))
+        self.assertEqual(self.client.get("/api/inbox").get_json(), before)
+        self.assertEqual(len(os.listdir(app.UPLOAD_DIR)), 2)
+        self.assertFalse(demo_seed.load_seed_if_empty(app.UPLOAD_DIR, seed, images))  # not empty now
 
     def test_unknown_patient(self):
         self.assertEqual(self.client.get("/api/patients/999").status_code, 404)
