@@ -548,13 +548,45 @@ function updateScroll(){
 }
 function queueScroll(){if(!scheduled){scheduled=true;requestAnimationFrame(updateScroll);}}
 addEventListener('scroll',queueScroll,{passive:true});addEventListener('resize',queueScroll);gate.addEventListener('change',queueScroll);updateScroll();
-const reportLayer=document.getElementById('report-layer');
-reportLayer.addEventListener('click',()=>{
-  const front=reportLayer.getAttribute('aria-pressed')!=='true';
-  reportLayer.setAttribute('aria-pressed',String(front));
-  reportLayer.textContent=front?'Bring original forward ↗':'Bring extraction forward ↗';
-  document.getElementById('report-stage').classList.toggle('readout-front',front);
+const inspectionFields={
+  reading:['Potassium','6.8','The source prints mmol/L in the adjacent unit column.'],
+  range:['Printed range','3.5–5.1','The range comes from this sample report.'],
+  patient:['Patient on the report','Ravi Shankar','Report dated 18 November 2026.']
+};
+const inspectionButtons=[...document.querySelectorAll('[data-inspect]')];
+for(const button of inspectionButtons)button.addEventListener('click',()=>{
+  const field=button.dataset.inspect;
+  const [title,value,note]=inspectionFields[field];
+  for(const item of inspectionButtons)item.setAttribute('aria-pressed',String(item===button));
+  document.querySelector('.inspection-image').dataset.field=field;
+  document.getElementById('inspection-title').textContent=title;
+  document.getElementById('inspection-value').textContent=value;
+  document.getElementById('inspection-note').textContent=note;
+});
+
+const archiveButtons=[...document.querySelectorAll('[data-archive]')];
+for(const button of archiveButtons)button.addEventListener('click',()=>{
+  for(const item of archiveButtons){
+    item.setAttribute('aria-pressed',String(item===button));
+    document.getElementById(item.getAttribute('aria-controls')).hidden=item!==button;
+  }
 });
 
 const intakeDemo=document.getElementById('intake-demo');
 new IntersectionObserver(([entry])=>intakeDemo.classList.toggle('is-visible',entry.isIntersecting),{threshold:.25}).observe(intakeDemo);
+let intakeFrame=0;
+intakeDemo.addEventListener('pointermove',event=>{
+  if(gate.matches||event.pointerType==='touch')return;
+  const x=event.clientX,y=event.clientY;
+  cancelAnimationFrame(intakeFrame);
+  intakeFrame=requestAnimationFrame(()=>{
+    const rect=intakeDemo.getBoundingClientRect();
+    intakeDemo.style.setProperty('--intake-rx',((.5-(y-rect.top)/rect.height)*8)+'deg');
+    intakeDemo.style.setProperty('--intake-ry',(((x-rect.left)/rect.width-.5)*12)+'deg');
+  });
+});
+intakeDemo.addEventListener('pointerleave',()=>{
+  cancelAnimationFrame(intakeFrame);
+  intakeDemo.style.removeProperty('--intake-rx');
+  intakeDemo.style.removeProperty('--intake-ry');
+});

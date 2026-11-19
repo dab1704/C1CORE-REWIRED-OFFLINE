@@ -22,7 +22,7 @@
       <header><i aria-hidden="true">↗</i><div><b>Clinic WhatsApp</b><small>Synthetic conversation</small></div></header>
       <div class="chat-bubble"><img src="/nabz/demo-report.png" alt="Synthetic Lab X report attached to the message" loading="lazy"><p>Doctor, sharing my lab report.</p><small>12:44</small></div>
     </article>
-    <div class="intake-signal" aria-hidden="true"><span></span>↗</div>
+    <div class="intake-transfer" aria-hidden="true"><span class="transfer-track"></span><div class="transfer-page"><img src="/nabz/demo-report.png" alt="" loading="lazy"><i></i></div><span class="transfer-arrow">↗</span></div>
     <article class="intake-case">
       <header><b>Review queue</b><span>Original attached</span></header>
       <h3>Ravi Shankar</h3>
@@ -38,15 +38,17 @@
     <div class="report-depth">
       <article class="report-paper">
         <header><b>Lab X</b><span>Original screenshot</span></header>
-        <img src="/nabz/demo-report.png" alt="Synthetic Lab X report showing the printed potassium result and range" loading="lazy">
+        <div class="inspection-image" data-field="reading"><img src="/nabz/demo-report.png" width="820" height="634" alt="Synthetic Lab X report for Ravi Shankar dated 18 November 2026. Potassium is 6.8 mmol/L with a printed range of 3.5 to 5.1." loading="lazy"><span class="inspection-mark" aria-hidden="true"></span></div>
       </article>
       <article class="readout">
-        <span>Extracted result</span><h3>Potassium</h3><strong>6.8</strong><p>Printed range 3.5–5.1</p><p>Awaiting clinician verification</p>
+        <span>Compare with the source</span>
+        <div class="inspection-fields" aria-label="Report fields"><button type="button" data-inspect="reading" aria-pressed="true">Reading</button><button type="button" data-inspect="range" aria-pressed="false">Printed range</button><button type="button" data-inspect="patient" aria-pressed="false">Patient</button></div>
+        <div class="inspection-value" aria-live="polite"><h3 id="inspection-title">Potassium</h3><strong id="inspection-value">6.8</strong><p id="inspection-note">The source prints mmol/L in the adjacent unit column.</p></div>
       </article>
     </div>
     <figcaption>Synthetic sample. The image and extracted value refer to the same report.</figcaption>
   </figure>
-  <div class="feature-actions"><button class="line-action" id="report-layer" type="button" aria-pressed="false">Bring extraction forward</button><a class="feature-link" href="/nabz/clinic.html?view=review">Review a report <span aria-hidden="true">↗</span></a></div>
+  <div class="feature-actions"><a class="feature-link" href="/nabz/clinic.html?view=review">Review a report <span aria-hidden="true">↗</span></a></div>
 </div></section>
 
 <section class="chapter anatomy atlas-section" id="anatomy" aria-labelledby="atlas-title">
@@ -57,6 +59,7 @@
       <aside class="atlas-card" id="atlas-region" hidden aria-live="polite"><small>Anatomy reference</small><h3 id="atlas-label"></h3><p id="atlas-description"></p></aside>
     </figure>
     <div class="copy"><h2 id="atlas-title">The shape of a <em>human.</em></h2><p>Drag to rotate. Point to or tap a region to see what it does.</p><div class="feature-actions"><button type="button" id="atlas-layer" class="line-action" aria-pressed="false">Show bones</button><a class="feature-link" href="#atlas-canvas">Focus anatomy viewer <span aria-hidden="true">↗</span></a></div></div>
+    <aside class="atlas-purpose"><h3>Why the anatomy viewer is here</h3><p>It gives the clinic team a shared visual reference when talking about a body region. The viewer sits alongside the report workflow as an educational aid.</p></aside>
   </div>
 </section>
 <section class="chapter patient-feature" id="patients" aria-labelledby="patients-title">
@@ -103,10 +106,16 @@
 <section class="chapter research closing" id="research" aria-labelledby="research-title"><div class="scene">
   <div class="copy"><h2 id="research-title">Why <em>follow-up</em> matters.</h2></div>
   <div class="research-statement"><strong>6.8–62%</strong><p>Lab tests without documented follow-up across studies in a 2012 ambulatory-care review.</p><small>The review included 19 studies across test types. The range is historical and does not estimate rates in Bengaluru.</small></div>
-  <div class="source-index evidence-stack">
-    <details open name="source-group"><summary><b>Published evidence</b><small>Systematic review and guidance</small></summary><div><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3445672/" target="_blank" rel="noopener">Callen et al. · Test result follow-up ↗</a><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4745612/" target="_blank" rel="noopener">Consensus guidance · High-risk lab results ↗</a><a href="https://academic.oup.com/clinchem/article/70/10/1220/7750927" target="_blank" rel="noopener">Clinical Chemistry · Critical results ↗</a></div></details>
-    <details name="source-group"><summary><b>Existing workflow</b><small>Report digitization and history</small></summary><div><a href="https://www.eka.care/services/eka-smart-report" target="_blank" rel="noopener">Eka Care · Report digitization and history ↗</a></div></details>
-    <details name="source-group"><summary><b>Interaction and artwork credits</b><small>Design and anatomy sources</small></summary><div><a href="https://github.com/Charleeh/ecorche" target="_blank" rel="noopener">Écorché · Based on Z-Anatomy and BodyParts3D ↗</a><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">Adapted anatomy under CC BY-SA 4.0 ↗</a><a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/11-chapter-review" target="_blank" rel="noopener">OpenStax · Anatomy descriptions ↗</a><a href="https://bencho.dev/" target="_blank" rel="noopener">Bencho · Heat Map, Progress Tracker and FAQ Frames patterns ↗</a><a href="https://libraries.dev/#components" target="_blank" rel="noopener">Libraries.dev · Border Beam interaction reference ↗</a><a href="https://landonorris.com/" target="_blank" rel="noopener">Lando Norris · Cutout motion and opening type reference ↗</a><a href="https://github.com/heydamir/unslop" target="_blank" rel="noopener">Unslop · Interface critique guidance ↗</a><a href="/nabz/anatomy-attribution.txt">Anatomy asset attribution ↗</a></div></details>
+  <div class="source-index archive-deck">
+    <div class="archive-tabs" aria-label="Reference collection">
+      <button type="button" data-archive="0" aria-controls="archive-panel-0" aria-pressed="true">Published evidence</button>
+      <button type="button" data-archive="1" aria-controls="archive-panel-1" aria-pressed="false">Existing workflow</button>
+      <button type="button" data-archive="2" aria-controls="archive-panel-2" aria-pressed="false">Design &amp; artwork</button>
+    </div><div class="archive-stack">
+      <article class="archive-paper" id="archive-panel-0"><h3>Published evidence</h3><p>Studies and guidance on following up test results.</p><div class="archive-links"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3445672/" target="_blank" rel="noopener">Callen et al. · Test result follow-up ↗</a><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4745612/" target="_blank" rel="noopener">Consensus guidance · High-risk lab results ↗</a><a href="https://academic.oup.com/clinchem/article/70/10/1220/7750927" target="_blank" rel="noopener">Clinical Chemistry · Critical results ↗</a></div></article>
+      <article class="archive-paper" id="archive-panel-1" hidden><h3>Existing workflow</h3><p>An example of report digitization and patient history.</p><div class="archive-links"><a href="https://www.eka.care/services/eka-smart-report" target="_blank" rel="noopener">Eka Care · Report digitization and history ↗</a></div></article>
+      <article class="archive-paper" id="archive-panel-2" hidden><h3>Design &amp; artwork</h3><p>Sources for the anatomy and interface.</p><div class="archive-links"><a href="https://github.com/Charleeh/ecorche" target="_blank" rel="noopener">Écorché · Based on Z-Anatomy and BodyParts3D ↗</a><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">Adapted anatomy under CC BY-SA 4.0 ↗</a><a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/11-chapter-review" target="_blank" rel="noopener">OpenStax · Anatomy descriptions ↗</a><a href="https://bencho.dev/" target="_blank" rel="noopener">Bencho · Heat Map, Progress Tracker and FAQ Frames patterns ↗</a><a href="https://libraries.dev/#components" target="_blank" rel="noopener">Libraries.dev · Border Beam interaction reference ↗</a><a href="https://landonorris.com/" target="_blank" rel="noopener">Lando Norris · Cutout motion and opening type reference ↗</a><a href="https://github.com/heydamir/unslop" target="_blank" rel="noopener">Unslop · Interface critique guidance ↗</a><a href="/nabz/anatomy-attribution.txt">Anatomy asset attribution ↗</a></div></article>
+    </div>
   </div>
   <a class="feature-link" href="/nabz/clinic.html?view=comparison">Compare queue order <span aria-hidden="true">↗</span></a>
 </div></section>
