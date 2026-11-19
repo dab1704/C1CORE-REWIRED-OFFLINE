@@ -1,6 +1,64 @@
 const hero = document.querySelector('.hero');
 const canvas = document.getElementById('signal-canvas');
 const ctx = canvas.getContext('2d');
+const pulseCanvas=document.getElementById('brand-pulse');
+const pulseCtx=pulseCanvas.getContext('2d');
+let pulseWidth=0,pulseHeight=0;
+const pulseShape=[0,-.08,.33,-.62,1,-.32,.15,0];
+const pulseSteps=144;
+let pulsePoints=[];
+
+function sizeBrandPulse(){
+  const rect=pulseCanvas.getBoundingClientRect();
+  const scale=Math.min(devicePixelRatio,2);
+  pulseWidth=rect.width;
+  pulseHeight=rect.height;
+  pulseCanvas.width=Math.round(pulseWidth*scale);
+  pulseCanvas.height=Math.round(pulseHeight*scale);
+  pulseCtx.setTransform(scale,0,0,scale,0,0);
+  const radiusX=pulseWidth*.455,radiusY=pulseHeight*.37;
+  const paths=[.11,.61];
+  pulsePoints=Array.from({length:pulseSteps},(_,index)=>{
+    const fraction=index/pulseSteps;
+    const angle=(fraction-.25)*Math.PI*2;
+    let impulse=0;
+    for(const start of paths){
+      const span=(fraction-start)/.115*(pulseShape.length-1);
+      const n=Math.floor(span);
+      if(n>=0&&n<pulseShape.length-1)impulse=pulseShape[n]+(pulseShape[n+1]-pulseShape[n])*(span-n);
+    }
+    return {
+      x:pulseWidth/2+(radiusX+impulse*3)*Math.cos(angle),
+      y:pulseHeight/2+(radiusY+impulse*pulseHeight*.17)*Math.sin(angle)
+    };
+  });
+}
+
+function paintBrandPulse(ms){
+  if(!pulsePoints.length)return;
+  pulseCtx.clearRect(0,0,pulseWidth,pulseHeight);
+  pulseCtx.beginPath();
+  pulseCtx.moveTo(pulsePoints[0].x,pulsePoints[0].y);
+  for(const point of pulsePoints.slice(1))pulseCtx.lineTo(point.x,point.y);
+  pulseCtx.closePath();
+  pulseCtx.lineWidth=1.15;
+  pulseCtx.strokeStyle='rgba(186,43,35,.55)';
+  pulseCtx.stroke();
+  if(gate.matches)return;
+  const head=Math.floor((ms%4800)/4800*pulseSteps);
+  const beat=Math.pow(Math.max(0,Math.sin(ms/1220*Math.PI*2)),9);
+  for(let trail=0;trail<24;trail++){
+    const i=(head-trail+pulseSteps)%pulseSteps;
+    const a=pulsePoints[i],b=pulsePoints[(i+1)%pulseSteps];
+    const intensity=1-trail/24;
+    pulseCtx.beginPath();
+    pulseCtx.moveTo(a.x,a.y);
+    pulseCtx.lineTo(b.x,b.y);
+    pulseCtx.lineWidth=1+intensity*(1.8+beat);
+    pulseCtx.strokeStyle='rgba(247,69,53,'+(intensity*.86)+')';
+    pulseCtx.stroke();
+  }
+}
 const gate = matchMedia('(prefers-reduced-motion: reduce)');
 const replay = document.getElementById('replay');
 const phase = document.getElementById('signal-phase');
@@ -56,6 +114,7 @@ function paint(ms) {
     ctx.fillText(chars[(Math.floor(p.random*chars.length)+seq*(p.random>.88||Math.abs(p.y-scan)<.9))%chars.length],sx,sy);
   }
   ctx.globalAlpha=1;
+  paintBrandPulse(ms);
 }
 function sepY(layer,t) { return layer===1?t*5:layer===2?-t*3:0; }
 function resize() {
@@ -67,7 +126,12 @@ function resize() {
   paint(gate.matches?3500:performance.now()-heroEpoch);
 }
 
-new ResizeObserver(resize).observe(canvas);resize();
+new ResizeObserver(resize).observe(canvas);
+new ResizeObserver(()=>{
+  sizeBrandPulse();
+  paintBrandPulse(gate.matches?3500:performance.now()-heroEpoch);
+}).observe(pulseCanvas);
+resize();
 let heroOnscreen=false,heroAnimation=0,lastHeroPaint=0;
 function animateHero(now){
   heroAnimation=0;
@@ -554,14 +618,83 @@ const inspectionFields={
   patient:['Patient on the report','Ravi Shankar','Report dated 18 November 2026.']
 };
 const inspectionButtons=[...document.querySelectorAll('[data-inspect]')];
-for(const button of inspectionButtons)button.addEventListener('click',()=>{
-  const field=button.dataset.inspect;
+const verificationWorkbench=document.getElementById('verification-workbench');
+const inspectionImage=document.querySelector('.inspection-image');
+const verificationToken=document.getElementById('verification-transfer');
+const inspectionValue=document.getElementById('inspection-value');
+let verificationMotion=null,verificationDrag=null,verificationFrame=0;
+
+function traceField(field,value){
+  verificationMotion?.cancel();
+  if(gate.matches){
+    verificationToken.hidden=true;
+    return;
+  }
+  const source=inspectionImage.querySelector('[data-inspect="'+field+'"]').getBoundingClientRect();
+  const target=inspectionValue.getBoundingClientRect();
+  const stage=verificationWorkbench.getBoundingClientRect();
+  const startX=source.left+source.width*.5-stage.left,startY=source.top+source.height*.5-stage.top;
+  const endX=target.left+Math.min(44,target.width*.48)-stage.left,endY=target.top+target.height*.53-stage.top;
+  verificationToken.textContent=value;
+  verificationToken.hidden=false;
+  const location=(x,y,scale)=>'translate3d('+x+'px,'+y+'px,0) translate(-50%,-50%) scale('+scale+')';
+  verificationMotion=verificationToken.animate([
+    {transform:location(startX,startY,.65),opacity:0},
+    {transform:location(startX+(endX-startX)*.46,startY+(endY-startY)*.36-22,1),opacity:1,offset:.49},
+    {transform:location(endX,endY,.78),opacity:0}
+  ],{duration:720,easing:'cubic-bezier(.22,.76,.24,1)'});
+  verificationMotion.onfinish=()=>{verificationToken.hidden=true;};
+}
+
+function selectInspection(field){
   const [title,value,note]=inspectionFields[field];
-  for(const item of inspectionButtons)item.setAttribute('aria-pressed',String(item===button));
-  document.querySelector('.inspection-image').dataset.field=field;
+  for(const item of inspectionButtons)item.setAttribute('aria-pressed',String(item.dataset.inspect===field));
+  inspectionImage.dataset.field=field;
   document.getElementById('inspection-title').textContent=title;
-  document.getElementById('inspection-value').textContent=value;
+  inspectionValue.textContent=value;
   document.getElementById('inspection-note').textContent=note;
+  traceField(field,value);
+}
+for(const button of inspectionButtons)button.addEventListener('click',()=>selectInspection(button.dataset.inspect));
+
+function tiltVerification(x,y){
+  verificationWorkbench.style.setProperty('--verify-x',Math.max(-15,Math.min(15,x))+'deg');
+  verificationWorkbench.style.setProperty('--verify-y',Math.max(-23,Math.min(23,y))+'deg');
+}
+function releaseVerification(){
+  cancelAnimationFrame(verificationFrame);
+  verificationDrag=null;
+  verificationWorkbench.classList.remove('is-dragging');
+  tiltVerification(0,0);
+}
+verificationWorkbench.addEventListener('pointerdown',event=>{
+  if(gate.matches||event.button!==0||event.target.closest('button'))return;
+  verificationDrag={id:event.pointerId,x:event.clientX,y:event.clientY};
+  verificationWorkbench.classList.add('is-dragging');
+  verificationWorkbench.setPointerCapture(event.pointerId);
+});
+verificationWorkbench.addEventListener('pointermove',event=>{
+  if(gate.matches||(!verificationDrag&&event.pointerType==='touch'))return;
+  const x=event.clientX,y=event.clientY;
+  cancelAnimationFrame(verificationFrame);
+  verificationFrame=requestAnimationFrame(()=>{
+    if(verificationDrag){
+      tiltVerification((verificationDrag.y-y)*.18,(x-verificationDrag.x)*.25);
+      return;
+    }
+    const stage=verificationWorkbench.getBoundingClientRect();
+    tiltVerification((.5-(y-stage.top)/stage.height)*9,((x-stage.left)/stage.width-.5)*13);
+  });
+});
+verificationWorkbench.addEventListener('pointerleave',()=>{if(!verificationDrag)releaseVerification();});
+for(const event of ['pointerup','pointercancel','lostpointercapture']){
+  verificationWorkbench.addEventListener(event,releaseVerification);
+}
+gate.addEventListener('change',()=>{
+  if(!gate.matches)return;
+  releaseVerification();
+  verificationMotion?.cancel();
+  verificationToken.hidden=true;
 });
 
 const archiveButtons=[...document.querySelectorAll('[data-archive]')];

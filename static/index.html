@@ -11,7 +11,7 @@
 <a class="slab" href="/nabz/clinic.html">Clinic inbox <span aria-hidden="true">↗</span></a></div></header>
 <main>
 <section class="hero" aria-labelledby="brand-title">
-<div class="hero-content"><h1 id="brand-title">nabz</h1><h2>Lab reports belong in a review queue</h2><p>Turn patient screenshots into a clinic inbox. Check the reading against the original, see previous results, and track who follows up.</p><div class="hero-actions"><a class="button" href="#intake">Explore the workflow ↓</a><button type="button" class="button secondary" id="replay">Replay intro</button></div></div>
+<div class="hero-content"><div class="hero-wordmark"><canvas id="brand-pulse" aria-hidden="true"></canvas><h1 id="brand-title">nabz</h1></div><h2>Lab reports belong in a review queue</h2><p>Turn patient screenshots into a clinic inbox. Check the reading against the original, see previous results, and track who follows up.</p><div class="hero-actions"><a class="button" href="#intake">Explore the workflow ↓</a><button type="button" class="button secondary" id="replay">Replay intro</button></div></div>
 <div class="hero-visual"><canvas id="signal-canvas" aria-hidden="true"></canvas><div class="instrument-label"><span id="signal-phase">REPORT / SIGNAL</span><span>LAB X · SYNTHETIC</span></div></div>
 
 </section>
@@ -33,20 +33,28 @@
   <a class="feature-link" href="/nabz/clinic.html?view=intake">Upload a screenshot <span aria-hidden="true">↗</span></a>
 </div></section>
 <section class="chapter verify closing" id="verify" aria-labelledby="verify-title"><div class="scene">
-  <div class="copy"><h2 id="verify-title">Verify the <em>original.</em></h2><p>Compare the extracted reading and printed range with the report.</p></div>
+  <div class="copy"><h2 id="verify-title">Verify the <em>original.</em></h2><p>Select a field to trace it from the original report to the extracted record.</p></div>
   <figure class="report-stage" id="report-stage">
-    <div class="report-depth">
+    <div class="verification-workbench" id="verification-workbench">
+      <div class="verification-floor" aria-hidden="true"></div>
+      <div class="report-depth">
       <article class="report-paper">
         <header><b>Lab X</b><span>Original screenshot</span></header>
-        <div class="inspection-image" data-field="reading"><img src="/nabz/demo-report.png" width="820" height="634" alt="Synthetic Lab X report for Ravi Shankar dated 18 November 2026. Potassium is 6.8 mmol/L with a printed range of 3.5 to 5.1." loading="lazy"><span class="inspection-mark" aria-hidden="true"></span></div>
+        <div class="inspection-image" data-field="reading"><img src="/nabz/demo-report.png" width="820" height="634" alt="Synthetic Lab X report for Ravi Shankar dated 18 November 2026. Potassium is 6.8 mmol/L with a printed range of 3.5 to 5.1." loading="lazy" draggable="false">
+          <button type="button" class="source-hotspot" data-inspect="reading" aria-label="Select the potassium reading" aria-pressed="true"></button>
+          <button type="button" class="source-hotspot" data-inspect="range" aria-label="Select the printed reference range" aria-pressed="false"></button>
+          <button type="button" class="source-hotspot" data-inspect="patient" aria-label="Select the patient and date" aria-pressed="false"></button>
+        </div>
       </article>
       <article class="readout">
         <span>Compare with the source</span>
         <div class="inspection-fields" aria-label="Report fields"><button type="button" data-inspect="reading" aria-pressed="true">Reading</button><button type="button" data-inspect="range" aria-pressed="false">Printed range</button><button type="button" data-inspect="patient" aria-pressed="false">Patient</button></div>
         <div class="inspection-value" aria-live="polite"><h3 id="inspection-title">Potassium</h3><strong id="inspection-value">6.8</strong><p id="inspection-note">The source prints mmol/L in the adjacent unit column.</p></div>
       </article>
+      </div>
+      <span id="verification-transfer" class="verification-transfer" aria-hidden="true" hidden></span>
     </div>
-    <figcaption>Synthetic sample. The image and extracted value refer to the same report.</figcaption>
+    <figcaption>Drag to tilt the panels. Select a field on either panel. Synthetic report.</figcaption>
   </figure>
   <div class="feature-actions"><a class="feature-link" href="/nabz/clinic.html?view=review">Review a report <span aria-hidden="true">↗</span></a></div>
 </div></section>
@@ -120,7 +128,7 @@
   <a class="feature-link" href="/nabz/clinic.html?view=comparison">Compare queue order <span aria-hidden="true">↗</span></a>
 </div></section>
 </main>
-<footer class="footer"><span>NABZ · Illustrations use synthetic cases</span><a href="#top">Back to top ↑</a></footer>
+<footer class="footer"><a href="#top">Back to top ↑</a></footer>
 
 <script src="/nabz/landing.js" defer></script>
 <script src="/nabz/live-preview.js" defer></script></body></html>

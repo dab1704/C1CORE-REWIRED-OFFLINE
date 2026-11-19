@@ -38,12 +38,14 @@ function renderTrend(){
   const min=Math.min(0,...values),max=Math.max(0,...values);
   const scale=(max-min||1)/86;
   const controls=[];
-  for(const point of recent){
+  for(const [index,point] of recent.entries()){
     const button=document.createElement('button');
     button.type='button';
     button.className='plot-column';
     if(!point.confirmed)button.classList.add('unconfirmed');
     button.setAttribute('aria-pressed','false');
+    button.style.setProperty('--trend-delay',(index*48)+'ms');
+    button.style.setProperty('--trend-origin',point.value<0?'center top':'center bottom');
     button.style.setProperty('--bar-height',Math.max(2,Math.abs(point.value)/scale)+'%');
     button.style.setProperty('--bar-bottom',(Math.min(0,point.value)-min)/scale+'%');
     const frame=document.createElement('span');
