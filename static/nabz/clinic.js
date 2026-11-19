@@ -6,6 +6,8 @@ const statusLabel = {
 const priorityLabel = { urgent: "Urgent", unread: "Unread", watch: "Watch", routine: "Routine" };
 const uploadedSources = new Map();
 let currentReports = [];
+const clinicQuery = new URLSearchParams(location.search);
+$("pending-only").checked = clinicQuery.get("review") === "pending";
 let patientRequest = 0;
 
 async function api(path, options) {
@@ -79,13 +81,21 @@ function renderReport(report) {
   return row;
 }
 
+function renderInbox() {
+  const pendingOnly = $("pending-only").checked;
+  const listed = pendingOnly ? currentReports.filter(report => report.status !== "confirmed") : currentReports;
+  $("queue").replaceChildren(...listed.map(renderReport));
+  $("queue-message").textContent = listed.length
+    ? listed.length + " report(s) · Highest priority first"
+    : pendingOnly ? "No reports awaiting review." : "No reports yet.";
+}
+
 async function loadInbox() {
   $("refresh").disabled = true;
   $("queue-message").textContent = "Loading reports…";
   try {
     currentReports = await api("inbox");
-    $("queue").replaceChildren(...currentReports.map(renderReport));
-    $("queue-message").textContent = currentReports.length ? currentReports.length + " report(s) · Highest priority first" : "No reports yet.";
+    renderInbox();
   } catch (error) {
     $("queue-message").textContent = "Could not load the queue. " + error.message;
   } finally {
@@ -200,7 +210,11 @@ $("compare").addEventListener("click", async () => {
     showComparison(arrival, ranked);
     message.textContent = "Comparison from Flask.";
   } catch (error) {
-    if (error.status === 404) {
+    if (error.status === 404 && currentReports.length) {
+      const byArrival = [...currentReports].sort((a, b) => String(a.received_at).localeCompare(String(b.received_at)));
+      showComparison(byArrival, currentReports);
+      message.textContent = "Computed from the current review queue.";
+    } else if (error.status === 404) {
       const routine = { id: 1, patient_name: "Sample report A", level: "routine" };
       const urgent = { id: 2, patient_name: "Sample report B", level: "urgent" };
       showComparison([routine, urgent], [urgent, routine]);
@@ -218,5 +232,13 @@ $("refresh").addEventListener("click", () => Promise.all([loadInbox(), loadPatie
 api("health")
   .then(data => { $("server").textContent = data.ok ? "Connected to Flask" : "Flask status unavailable"; })
   .catch(() => { $("server").textContent = "Could not reach Flask"; });
-loadInbox();
-loadPatients();
+$("pending-only").addEventListener("change", renderInbox);
+Promise.all([loadInbox(), loadPatients()]).then(()=>{
+  const requested=clinicQuery.get("patient");
+  const select=$("patients");
+  if(requested&&[...select.options].some(option=>option.value===requested)){
+    select.value=requested;
+    loadPatient(requested);
+  }
+  if(location.hash==="#comparison")$("compare").click();
+});
