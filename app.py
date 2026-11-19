@@ -162,7 +162,7 @@ def upload_report():
 
 # ---------- inbox, confirm, patient history ----------
 
-RANK = {"urgent": 0, "watch": 1, "routine": 2}  # lower number shows first
+RANK = {"urgent": 0, "unread": 1, "watch": 2, "routine": 3}  # lower number shows first
 
 
 def report_tests(conn, report_id):
@@ -174,7 +174,8 @@ def report_tests(conn, report_id):
 
 @app.get("/api/inbox")
 def inbox():
-    # Every report: most urgent first, newest first inside a level
+    # Every report: urgent, then unread (not machine-read yet), then the rest.
+    # Newest first inside a level.
     with db.get_db() as conn:
         rows = conn.execute(
             "SELECT r.id, r.patient_id, p.name AS patient_name, r.level,"
@@ -183,8 +184,11 @@ def inbox():
             " FROM reports r LEFT JOIN patients p ON p.id = r.patient_id").fetchall()
         items = [dict(r, worst=rules.assess(report_tests(conn, r["id"]))["worst"])
                  for r in rows]
+    for i in items:
+        if i["status"] == "needs_verification" and i["level"] != "urgent":
+            i["level"] = "unread"  # a human must look; a keyword-urgent one stays urgent
     items.sort(key=lambda i: i["received_at"] or "", reverse=True)
-    items.sort(key=lambda i: RANK.get(i["level"], 3))  # stable, keeps newest first
+    items.sort(key=lambda i: RANK.get(i["level"], 4))  # stable, keeps newest first
     return jsonify(items)
 
 
@@ -245,6 +249,24 @@ def patient_detail(pid):
         trend.setdefault(h["name"], []).append({"date": h["date"], "value": h["value"]})
     return jsonify({"patient": dict(p), "reports": reports, "trend": trend,
                     "rising": rules.rising_tests(history)})
+
+
+@app.post("/api/reset")
+def reset():
+    # Demo reset: clear all report data and uploaded files, keep settings.
+    # Seeded patients stay; patients created from uploads are removed.
+    with db.get_db() as conn:
+        for table in ("alerts", "messages", "test_results", "reports"):
+            conn.execute(f"DELETE FROM {table}")
+        for p in conn.execute("SELECT id, name, age, sex FROM patients").fetchall():
+            if (p["name"], p["age"], p["sex"]) not in db.PATIENTS:
+                conn.execute("DELETE FROM patients WHERE id = ?", (p["id"],))
+    if os.path.isdir(UPLOAD_DIR):
+        for name in os.listdir(UPLOAD_DIR):
+            path = os.path.join(UPLOAD_DIR, name)
+            if os.path.isfile(path):
+                os.remove(path)
+    return jsonify({"ok": True})
 
 
 db.init_db()  # create tables on startup

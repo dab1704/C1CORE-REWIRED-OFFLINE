@@ -66,6 +66,32 @@ class ApiTest(unittest.TestCase):
         self.assertEqual([p["value"] for p in detail["trend"]["Glucose (Fasting)"]], [140, 165, 190])
         self.assertIn("Glucose (Fasting)", detail["rising"])
 
+    def upload_unreadable(self):
+        # A file name the fake reader does not know acts like a failed Gemini read
+        with open(REPORTS + "report_09_C.png", "rb") as f:
+            return self.client.post("/api/reports", data={"file": (f, "nope.png")}).get_json()
+
+    def test_unread_sits_right_after_urgent(self):
+        routine = self.upload("report_09_C.png")
+        watch = self.upload("report_22_A.png")
+        unread = self.upload_unreadable()
+        urgent = self.upload("report_10_A.png")
+        inbox = self.client.get("/api/inbox").get_json()
+        self.assertEqual([i["id"] for i in inbox],
+                         [urgent["id"], unread["id"], watch["id"], routine["id"]])
+        self.assertEqual(inbox[1]["level"], "unread")
+
+    def test_reset_clears_data_keeps_settings(self):
+        self.upload("report_10_A.png")  # creates a new patient and an uploaded file
+        self.assertTrue(os.listdir(app.UPLOAD_DIR))
+        self.assertEqual(self.client.post("/api/reset").get_json(), {"ok": True})
+        self.assertEqual(self.client.get("/api/inbox").get_json(), [])
+        self.assertEqual(os.listdir(app.UPLOAD_DIR), [])
+        self.assertEqual(len(self.client.get("/api/patients").get_json()), len(db.PATIENTS))
+        with db.get_db() as conn:
+            self.assertEqual(conn.execute("SELECT COUNT(*) FROM settings").fetchone()[0],
+                             len(db.SETTINGS))
+
     def test_unknown_patient(self):
         self.assertEqual(self.client.get("/api/patients/999").status_code, 404)
 
