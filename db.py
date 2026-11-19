@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS reports (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     patient_id INTEGER REFERENCES patients(id),
     received_at TEXT, source TEXT, message_id TEXT,
-    image_path TEXT, status TEXT, level TEXT);
+    image_path TEXT, status TEXT, level TEXT, report_date TEXT);
 CREATE TABLE IF NOT EXISTS test_results (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     report_id INTEGER REFERENCES reports(id),
@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS alerts (
     report_id INTEGER REFERENCES reports(id), sent_at TEXT);
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY, value TEXT);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_reports_msg ON reports(source, message_id);
 """
 
 # Fictional patients only
@@ -54,6 +55,10 @@ def init_db():
     # Create tables if missing, then add demo data
     with get_db() as conn:
         conn.executescript(SCHEMA)
+        # Older database files may lack report_date
+        cols = [r["name"] for r in conn.execute("PRAGMA table_info(reports)")]
+        if "report_date" not in cols:
+            conn.execute("ALTER TABLE reports ADD COLUMN report_date TEXT")
     seed()
 
 
@@ -72,3 +77,12 @@ def list_patients():
     with get_db() as conn:
         rows = conn.execute("SELECT id, name, age, sex FROM patients ORDER BY id")
         return [dict(r) for r in rows]
+
+
+def patient_history(conn, patient_id):
+    # Every past reading of this patient, for the trend rule
+    rows = conn.execute(
+        "SELECT r.report_date AS date, t.name, t.value, t.range_low, t.range_high "
+        "FROM test_results t JOIN reports r ON r.id = t.report_id "
+        "WHERE r.patient_id = ?", (patient_id,))
+    return [dict(r) for r in rows]
