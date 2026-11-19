@@ -12,6 +12,8 @@ let selectedHeat = null;
 let queuePage = 0;
 const queuePageSize = 9;
 let patientRequest = 0;
+let patientDirectory = [];
+let selectedPatientId = "";
 
 async function api(path, options) {
   const response = await fetch("/api/" + path, options);
@@ -127,7 +129,7 @@ function renderReport(report) {
       await api("reports/" + report.id + "/confirm", { method: "POST" });
       message.textContent = "Reading confirmed.";
       confirm.hidden = review.closest("label").hidden = true;
-      await Promise.all([loadInbox(), loadPatient($("patients").value)]);
+      await Promise.all([loadInbox(), loadPatient(selectedPatientId)]);
     } catch (error) {
       message.textContent = error.message;
       confirm.disabled = review.disabled = false;
@@ -236,31 +238,37 @@ async function loadInbox() {
   }
 }
 
+function renderPatientMatches() {
+  const query = $("patient-search").value.trim().toLowerCase();
+  const matches = patientDirectory.filter(patient => patient.name.toLowerCase().includes(query));
+  const grid = $("patient-matches");
+  grid.replaceChildren();
+  const shown = matches.slice(0, 12);
+  for (const patient of shown) {
+    const option = node("button", patient.name);
+    option.type = "button";
+    option.setAttribute("aria-pressed", String(String(patient.id) === selectedPatientId));
+    option.addEventListener("click", () => {
+      $("patient-picker").open = false;
+      $("patient-picker").querySelector("summary").focus();
+      const url = new URL(location.href);
+      url.searchParams.set("patient", patient.id);
+      history.replaceState({}, "", url);
+      loadPatient(String(patient.id));
+    });
+    grid.append(option);
+  }
+  $("patient-search-status").textContent = matches.length > shown.length
+    ? shown.length + " of " + matches.length + " patients. Search to narrow the results."
+    : matches.length ? "" : "No matching patients.";
+}
+
 async function loadPatients() {
-  const select = $("patients");
-  const previous = select.value;
   try {
-    const patients = await api("patients");
-    select.replaceChildren(new Option("Select a patient", ""));
-    for (const patient of patients) {
-      select.add(new Option(patient.name, patient.id));
-    }
-    if ([...select.options].some(option => option.value === previous)) select.value = previous;
-    select.disabled = !patients.length;
-    const cards = $("patient-cards");
-    cards.replaceChildren();
-    for (const patient of patients) {
-      const card = node("button", patient.name);
-      card.type = "button";
-      card.dataset.patientId = patient.id;
-      card.setAttribute("aria-pressed", String(String(patient.id) === select.value));
-      card.addEventListener("click", () => {
-        select.value = patient.id;
-        loadPatient(select.value);
-      });
-      cards.append(card);
-    }
-    $("patients-message").textContent = patients.length ? "" : "No patients yet.";
+    patientDirectory = await api("patients");
+    patientDirectory.sort((a, b) => a.name.localeCompare(b.name));
+    renderPatientMatches();
+    $("patients-message").textContent = patientDirectory.length ? "" : "No patients yet.";
   } catch (error) {
     $("patients-message").textContent = "Could not load patients. " + error.message;
   }
@@ -268,12 +276,13 @@ async function loadPatients() {
 
 async function loadPatient(id) {
   const request = ++patientRequest;
+  selectedPatientId = id;
+  const patient = patientDirectory.find(item => String(item.id) === id);
+  $("patient-selection").textContent = patient?.name || "Find a patient";
   $("patient-detail").replaceChildren();
-  for (const card of $("patient-cards").children) {
-    card.setAttribute("aria-pressed", String(card.dataset.patientId === id));
-  }
+  renderPatientMatches();
   if (!id) {
-    if (!$("patients").disabled) $("patients-message").textContent = "";
+    if (patientDirectory.length) $("patients-message").textContent = "";
     return;
   }
   $("patients-message").textContent = "Loading history…";
@@ -334,7 +343,7 @@ $("upload").addEventListener("submit", async (event) => {
     result.hidden = false;
     message.textContent = "Report #" + report.id + " received.";
     form.reset();
-    await Promise.all([loadInbox(), loadPatients(), loadPatient($("patients").value)]);
+    await Promise.all([loadInbox(), loadPatients(), loadPatient(selectedPatientId)]);
   } catch (error) {
     message.textContent = error.message;
   } finally {
@@ -342,19 +351,70 @@ $("upload").addEventListener("submit", async (event) => {
   }
 });
 
-function showComparison(arrival, ranked) {
-  const columns = node("div");
-  columns.className = "proof-columns";
-  for (const [title, reports] of [["Arrival order", arrival], ["Nabz order", ranked]]) {
-    const column = node("div");
-    const entries = node("ol");
-    for (const report of reports) {
-      entries.append(node("li", reportName(report) + " · " + (priorityLabel[report.level] ?? "Unranked")));
-    }
-    column.append(node("h3", title), entries);
-    columns.append(column);
+let proofRows = [];
+let proofFilter = "all";
+
+function position(label, value) {
+  const item = node("div");
+  item.className = "comparison-position";
+  item.append(node("span", label), node("strong", value == null ? "—" : "#" + value));
+  return item;
+}
+
+function renderComparison() {
+  const results = $("proof-result");
+  const grid = node("div");
+  grid.className = "comparison-grid";
+  const rows = proofRows.filter(row => proofFilter === "all" || row.direction === proofFilter);
+  for (const row of rows) {
+    const card = node("article");
+    card.className = "comparison-card";
+    card.dataset.direction = row.direction;
+    const heading = node("header");
+    const identity = node("div");
+    identity.append(node("h3", reportName(row.report)), node("small", "Report #" + row.report.id));
+    const priority = node("span", priorityLabel[row.report.level] ?? "Unranked");
+    priority.className = "priority";
+    priority.dataset.level = row.report.level;
+    heading.append(identity, priority);
+    const flow = node("div");
+    flow.className = "comparison-flow";
+    const arrow = node("span", "→");
+    arrow.setAttribute("aria-hidden", "true");
+    flow.append(position("Arrival order", row.arrival), arrow, position("Nabz order", row.ranked));
+    const movement = row.delta == null ? "Position unavailable" : row.delta === 0 ? "Same position"
+      : "Moved " + row.direction + " " + Math.abs(row.delta) + (Math.abs(row.delta) === 1 ? " place" : " places");
+    const footer = node("div");
+    footer.className = "comparison-footer";
+    const open = node("a", "Review ↗");
+    open.href = "/nabz/clinic.html?view=review&report=" + encodeURIComponent(row.report.id);
+    footer.append(node("span", movement), open);
+    card.append(heading, flow, footer);
+    grid.append(card);
   }
-  $("proof-result").replaceChildren(columns);
+  results.replaceChildren(rows.length ? grid : node("p", "No reports in this view."));
+}
+
+function showComparison(arrival, ranked) {
+  const initial = new Map(arrival.map((report, index) => [String(report.id), report.pos ?? index + 1]));
+  proofRows = ranked.map((report, index) => {
+    const before = initial.get(String(report.id));
+    const after = report.pos ?? index + 1;
+    const delta = before == null ? null : before - after;
+    return {report, arrival: before, ranked: after, delta, direction: delta > 0 ? "up" : delta < 0 ? "down" : "same"};
+  });
+  $("proof-filter").hidden = !proofRows.length;
+  renderComparison();
+}
+
+for (const button of document.querySelectorAll("[data-proof]")) {
+  button.addEventListener("click", () => {
+    proofFilter = button.dataset.proof;
+    for (const item of document.querySelectorAll("[data-proof]")) {
+      item.setAttribute("aria-pressed", String(item === button));
+    }
+    renderComparison();
+  });
 }
 
 $("compare").addEventListener("click", async () => {
@@ -363,13 +423,21 @@ $("compare").addEventListener("click", async () => {
   button.disabled = true;
   message.textContent = "Loading comparison…";
   $("proof-result").replaceChildren();
+  $("proof-filter").hidden = true;
   try {
     const data = await api("compare");
     const arrival = data.arrival_order ?? data.arrival;
     const ranked = data.nabz_order ?? data.ranked;
     if (!Array.isArray(arrival) || !Array.isArray(ranked)) throw new Error("Comparison response format is unavailable.");
     showComparison(arrival, ranked);
-    message.textContent = "Comparison from Flask.";
+    if (ranked.length) {
+      const urgentInFirstTen = reports => reports.slice(0, 10).filter(report => report.level === "urgent").length;
+      message.textContent = "Urgent reports in the first 10 slots: " +
+        urgentInFirstTen(arrival) + " in arrival order, " + urgentInFirstTen(ranked) + " in Nabz order.";
+      button.textContent = "Refresh";
+    } else {
+      message.textContent = "No reports available to compare.";
+    }
   } catch (error) {
     if (error.status === 404) {
       const reports = await api("inbox").catch(() => []);
@@ -421,12 +489,8 @@ async function openWorkspace() {
   if (activeWorkspace === "patients") {
     await loadPatients();
     if (activeWorkspace !== "patients") return;
-    const requested = query.get("patient");
-    const select = $("patients");
-    if (requested && [...select.options].some(option => option.value === requested)) {
-      select.value = requested;
-      loadPatient(requested);
-    }
+    const requested = query.get("patient") || selectedPatientId;
+    if (patientDirectory.some(patient => String(patient.id) === requested)) loadPatient(requested);
   }
   if (activeWorkspace === "comparison") $("compare").click();
 }
@@ -442,7 +506,16 @@ document.addEventListener("click", event => {
   openWorkspace();
 });
 window.addEventListener("popstate", openWorkspace);
-$("patients").addEventListener("change", () => loadPatient($("patients").value));
+$("patient-search").addEventListener("input", renderPatientMatches);
+$("patient-picker").addEventListener("toggle", () => {
+  if ($("patient-picker").open) $("patient-search").focus();
+});
+$("patient-picker").addEventListener("keydown", event => {
+  if (event.key === "Escape" && $("patient-picker").open) {
+    $("patient-picker").open = false;
+    $("patient-picker").querySelector("summary").focus();
+  }
+});
 $("refresh").addEventListener("click", loadInbox);
 $("heat-refresh").addEventListener("click", loadInbox);
 $("pending-only").addEventListener("change", () => { queuePage = 0; renderInbox(); });

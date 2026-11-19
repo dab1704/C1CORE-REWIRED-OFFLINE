@@ -51,9 +51,15 @@
         </section>
         <section class="panel" id="patient-history" aria-labelledby="patients-title">
           <h2 id="patients-title">Patients</h2>
-          <div id="patient-cards" class="patient-strip" aria-label="Choose a patient"></div>
-          <label for="patients">Jump to patient</label>
-          <select id="patients" disabled><option value="">Select a patient</option></select>
+          <details id="patient-picker" class="patient-picker">
+            <summary><span id="patient-selection">Find a patient</span><span aria-hidden="true">⌄</span></summary>
+            <div class="picker-panel">
+              <label for="patient-search">Search by name</label>
+              <input id="patient-search" type="search" placeholder="e.g. Kavita Reddy" autocomplete="off">
+              <p id="patient-search-status" role="status"></p>
+              <div id="patient-matches" class="patient-matches" aria-label="Matching patients"></div>
+            </div>
+          </details>
           <p id="patients-message" role="status">Loading patients…</p>
           <div id="patient-detail"></div>
         </section>
@@ -62,6 +68,11 @@
     <section class="panel proof" id="comparison" aria-labelledby="proof-title">
       <div class="panel-head"><h2 id="proof-title">Arrival order vs Nabz order</h2><button type="button" id="compare" class="quiet">Show comparison</button></div>
       <p id="proof-message" role="status"></p>
+      <div id="proof-filter" class="proof-filter" hidden aria-label="Filter queue movements">
+        <button type="button" data-proof="all" aria-pressed="true">All reports</button>
+        <button type="button" data-proof="up" aria-pressed="false">Moved up</button>
+        <button type="button" data-proof="down" aria-pressed="false">Moved down</button>
+      </div>
       <div id="proof-result"></div>
     </section>
   </main>
