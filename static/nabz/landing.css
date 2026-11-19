@@ -272,3 +272,18 @@ header#top .logo small{color:var(--mustard)}
 .chart-filter{display:block;text-align:left;font-size:12px;margin-top:12px;color:#e7d9cc}
 .chart-filter input{margin:0 5px 0 0;vertical-align:middle;accent-color:#9f392d}
 #trend-bars .unconfirmed .bar-body{background-image:repeating-linear-gradient(135deg,#201c2338 0 3px,transparent 3px 8px)}
+
+/* Scroll-driven angled reveal, applied only while a chapter enters the viewport. */
+.chapter.is-entering:not(:focus-within) .scene{
+  clip-path:polygon(0 0,100% 0,100% var(--cut-right),0 var(--cut-left));
+  transform:perspective(1350px) translateZ(var(--scene-depth)) rotateX(var(--scene-pitch));
+  transform-origin:center top;
+}
+.handoff-loop{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;overflow:hidden;z-index:-1}
+.follow .scene{isolation:isolate}
+.handoff-loop svg{width:min(104vw,1040px);height:auto;transform:rotate(-14deg);overflow:visible;opacity:.66}
+.handoff-loop ellipse{stroke:#907763;stroke-width:1;transform-origin:50% 50%}
+.handoff-loop ellipse:nth-child(2){stroke:#85302a;stroke-width:2;stroke-dasharray:13 87;animation:orbit-trace 5s linear infinite}
+.handoff-loop ellipse:nth-child(3){stroke:#8d6d45;stroke-width:1.2;stroke-dasharray:5 95;animation:orbit-trace 7s -3s linear infinite reverse;transform:rotate(22deg)}
+@keyframes orbit-trace{to{stroke-dashoffset:-100}}
+@media(prefers-reduced-motion:reduce){.chapter.is-entering .scene{clip-path:none;transform:none}.handoff-loop ellipse{animation:none}}

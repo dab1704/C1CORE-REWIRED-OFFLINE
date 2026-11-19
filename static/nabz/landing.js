@@ -531,6 +531,15 @@ function updateScroll(){
     const rect=section.getBoundingClientRect();
     const progress=gate.matches?1:clamp((viewport*.91-rect.top)/(rect.height-viewport*.15));
     section.style.setProperty('--progress',String(progress));
+    const entering=!gate.matches&&rect.top>viewport*.28&&rect.top<viewport*.94;
+    section.classList.toggle('is-entering',entering);
+    if(entering){
+      const entry=smooth((viewport*.94-rect.top)/(viewport*.66));
+      section.style.setProperty('--cut-left',Math.min(100,116*entry+16)+'%');
+      section.style.setProperty('--cut-right',Math.min(100,128*entry)+'%');
+      section.style.setProperty('--scene-depth',(-125*(1-entry))+'px');
+      section.style.setProperty('--scene-pitch',(8*(1-entry))+'deg');
+    }
     if(rect.top<viewport*.54&&rect.bottom>viewport*.54)active=section.id;
 
   }

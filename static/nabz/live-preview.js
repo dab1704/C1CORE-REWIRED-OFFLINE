@@ -73,7 +73,7 @@ async function loadTrend(){
   const sequence=++trendSequence;
   const patient=trendPatient.value;
   const selectedTest=trendTest.value;
-  historyLink.href='/nabz/clinic.html'+(patient?'?patient='+encodeURIComponent(patient):'')+'#patient-history';
+  historyLink.href='/nabz/clinic.html?view=patients'+(patient?'&patient='+encodeURIComponent(patient):'');
   trendSeries=[];
   selectFrom(trendTest,[],'Select test');
   trendBars.replaceChildren();
