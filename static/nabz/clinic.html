@@ -36,6 +36,7 @@
         <label class="queue-filter"><input id="pending-only" type="checkbox"> Awaiting review only</label>
         <p id="queue-message" role="status">Loading reports…</p>
         <ul id="queue" class="records"></ul>
+        <nav class="queue-pages" id="queue-pages" aria-label="Report pages" hidden><button type="button" class="quiet" id="queue-prev">Previous</button><span id="queue-page" aria-live="polite"></span><button type="button" class="quiet" id="queue-next">Next</button></nav>
       </section>
       <div class="sidebar">
         <section class="panel" id="upload-panel" aria-labelledby="intake-title">
@@ -50,7 +51,8 @@
         </section>
         <section class="panel" id="patient-history" aria-labelledby="patients-title">
           <h2 id="patients-title">Patients</h2>
-          <label for="patients">Open patient history</label>
+          <div id="patient-cards" class="patient-strip" aria-label="Choose a patient"></div>
+          <label for="patients">Jump to patient</label>
           <select id="patients" disabled><option value="">Select a patient</option></select>
           <p id="patients-message" role="status">Loading patients…</p>
           <div id="patient-detail"></div>
@@ -67,7 +69,7 @@
     <li class="record">
       <div class="record-heading"><h3></h3><span class="priority"></span></div>
       <p class="metadata"></p><p class="finding"></p>
-      <details><summary>Review report</summary>
+      <details name="queue-reports"><summary>Review report</summary>
         <div class="source-layout">
           <div class="source-attachment"></div>
           <div><div class="review-reading"></div>

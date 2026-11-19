@@ -8,7 +8,7 @@ body[data-workspace=overview] .page-head{min-height:clamp(230px,31vw,380px);marg
 .clinic-visual{position:absolute;pointer-events:none;inset:0 -2% 0 35%;display:grid;place-items:center;background:radial-gradient(ellipse at 60% 52%,#53664759,transparent 67%);overflow:hidden}
 .clinic-visual img{width:min(100%,660px);height:100%;object-fit:contain;filter:drop-shadow(0 14px 18px #080b0773);transform:translate3d(0,0,0);animation:room-idle 7s ease-in-out infinite}
 @keyframes room-idle{50%{transform:translate3d(0,-6px,0)}}
-.workspace{display:grid;gap:14px;margin-top:18px}.sidebar{display:grid;gap:14px}.sidebar:has(>.panel[hidden]):not(:has(>.panel:not([hidden]))),.workspace:not(:has(.panel:not([hidden]))){display:none}.panel{background:var(--panel);border:1px solid var(--line);padding:clamp(16px,2.5vw,28px);min-width:0}.panel-head{display:flex;justify-content:space-between;align-items:start;gap:12px}.panel-head p{margin-top:7px;color:var(--muted);font-size:13px}.panel form,.panel>label{margin-top:14px}.panel form{display:grid;justify-items:start;gap:9px}.panel p[role=status]:not(:empty){margin-top:9px}.panel label{display:block;font-size:14px}.panel input[type=file],select{max-width:100%;width:100%}select{padding:7px;background:var(--panel-deep);color:var(--ink);border:1px solid var(--line)}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:18px}.sidebar{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}.sidebar:has(>.panel[hidden]):not(:has(>.panel:not([hidden]))),.workspace:not(:has(.panel:not([hidden]))){display:none}.panel{background:var(--panel);border:1px solid var(--line);padding:clamp(16px,2.5vw,28px);min-width:0}.panel-head{display:flex;justify-content:space-between;align-items:start;gap:12px}.panel-head p{margin-top:7px;color:var(--muted);font-size:13px}.panel form,.panel>label{margin-top:14px}.panel form{display:grid;justify-items:start;gap:9px}.panel p[role=status]:not(:empty){margin-top:9px}.panel label{display:block;font-size:14px}.panel input[type=file],select{max-width:100%;width:100%}select{padding:7px;background:var(--panel-deep);color:var(--ink);border:1px solid var(--line)}
 .action,.quiet{display:inline-block;text-decoration:none;border:1px solid currentColor;padding:6px 11px;font-weight:700;font-size:13px}.action{background:#c5d0aa;color:#1e281a;border-color:#c5d0aa}.action:hover{background:#e0e7ce}.quiet{background:transparent;color:var(--ink);border-color:#768468}.quiet:hover{background:#384636}.proof{margin-top:18px}
 .panel[id]{scroll-margin-top:90px}.panel[id]:target{border-color:#9caa84}
 .records,.history-list{padding:0;list-style:none;margin-bottom:0}.record{padding:14px 0;border-top:1px solid var(--line);overflow-wrap:anywhere}.record-heading{display:flex;justify-content:space-between;align-items:start;gap:12px}.record h3{font-size:20px;line-height:1.2}.priority{border-bottom:2px solid #95ad71;color:#d1ddba;font-size:13px;font-weight:700}.priority[data-level=urgent]{color:#ffb0a3;border-color:var(--urgent)}.priority[data-level=unread]{color:#c3d5db;border-color:var(--unread)}.priority[data-level=watch]{color:#e9c984;border-color:var(--watch)}
@@ -23,3 +23,22 @@ body[data-workspace=overview] .page-head{min-height:clamp(230px,31vw,380px);marg
 @media(prefers-reduced-motion:reduce){.clinic-visual img{animation:none}.heat-tile{transition:none}}
 
 .review-reading h4{font-size:14px;margin:0 0 4px}.review-reading ul{margin:0;padding-left:17px;font-size:13px}.review-reading li+li{margin-top:4px}
+
+/* Compact clinic queues and patient cards */
+.records,.history-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:13px}
+.records .record,.history-list>li{min-width:0;padding:12px 13px;background:#212b1f;border:1px solid #44583e}
+.records .record:has(details[open]),.history-list>li:has(details[open]){grid-column:1/-1;background:#293526;border-color:#738668}
+.records .record h3{font-size:17px}
+.records .record .metadata{font-size:11px}
+.records .record:not(:has(details[open])) .finding{font-size:13px}
+.records .record summary{font-size:13px;color:#e0d4ab}
+.queue-pages{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:12px;font-size:13px;color:var(--muted)}
+.patient-strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(143px,18%);gap:7px;overflow-x:auto;scroll-snap-type:inline proximity;padding:7px 3px 10px;margin-top:10px;overscroll-behavior-inline:contain}
+.patient-strip button{scroll-snap-align:start;min-height:46px;border:1px solid #586b4d;background:#1d271b;color:#dedfc6;text-align:left;padding:8px 10px;font-size:13px;font-weight:700}
+.patient-strip button[aria-pressed=true]{background:#4c6041;border-color:#b5c398;color:#faf2dc}
+#patient-detail h3{margin-top:18px}
+.history-list>li summary{font-size:13px}
+.history-list>li summary span{display:block;color:var(--muted);padding-left:13px;margin-top:1px}
+.history-list .source-layout{margin-top:7px}
+@media(max-width:850px){.records,.history-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:460px){.records,.history-list{gap:6px}.records .record,.history-list>li{padding:8px}.records .record h3{font-size:15px}.record-heading{flex-wrap:wrap;gap:4px}.record-heading .priority{white-space:nowrap}.queue-pages{justify-content:space-between}}

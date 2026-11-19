@@ -9,6 +9,8 @@ let currentReports = [];
 let activeWorkspace = "";
 let openedReport = "";
 let selectedHeat = null;
+let queuePage = 0;
+const queuePageSize = 9;
 let patientRequest = 0;
 
 async function api(path, options) {
@@ -138,10 +140,22 @@ function renderReport(report) {
 function renderInbox() {
   const pendingOnly = $("pending-only").checked;
   const listed = pendingOnly ? currentReports.filter(report => report.status !== "confirmed") : currentReports;
-  $("queue").replaceChildren(...listed.map(renderReport));
+  const pages = Math.ceil(listed.length / queuePageSize);
+  const requested = new URLSearchParams(location.search).get("report");
+  if (activeWorkspace === "review" && requested && requested !== openedReport) {
+    const index = listed.findIndex(report => String(report.id) === requested);
+    if (index >= 0) queuePage = Math.floor(index / queuePageSize);
+  }
+  queuePage = Math.max(0, Math.min(queuePage, pages - 1));
+  const visible = listed.slice(queuePage * queuePageSize, (queuePage + 1) * queuePageSize);
+  $("queue").replaceChildren(...visible.map(renderReport));
   $("queue-message").textContent = listed.length
-    ? listed.length + " report(s) · Highest priority first"
+    ? listed.length + " reports · Highest priority first"
     : pendingOnly ? "No reports awaiting review." : "No reports yet.";
+  $("queue-pages").hidden = pages <= 1;
+  $("queue-page").textContent = "Page " + (queuePage + 1) + " of " + pages;
+  $("queue-prev").disabled = queuePage === 0;
+  $("queue-next").disabled = queuePage + 1 >= pages;
 }
 
 const heatLevels = { urgent: "Urgent", unread: "Unread", watch: "Watch", routine: "Routine", other: "Unranked" };
@@ -233,6 +247,19 @@ async function loadPatients() {
     }
     if ([...select.options].some(option => option.value === previous)) select.value = previous;
     select.disabled = !patients.length;
+    const cards = $("patient-cards");
+    cards.replaceChildren();
+    for (const patient of patients) {
+      const card = node("button", patient.name);
+      card.type = "button";
+      card.dataset.patientId = patient.id;
+      card.setAttribute("aria-pressed", String(String(patient.id) === select.value));
+      card.addEventListener("click", () => {
+        select.value = patient.id;
+        loadPatient(select.value);
+      });
+      cards.append(card);
+    }
     $("patients-message").textContent = patients.length ? "" : "No patients yet.";
   } catch (error) {
     $("patients-message").textContent = "Could not load patients. " + error.message;
@@ -242,6 +269,9 @@ async function loadPatients() {
 async function loadPatient(id) {
   const request = ++patientRequest;
   $("patient-detail").replaceChildren();
+  for (const card of $("patient-cards").children) {
+    card.setAttribute("aria-pressed", String(card.dataset.patientId === id));
+  }
   if (!id) {
     if (!$("patients").disabled) $("patients-message").textContent = "";
     return;
@@ -254,14 +284,19 @@ async function loadPatient(id) {
     records.className = "history-list";
     for (const report of reports) {
       const row = node("li");
-      row.append(node("strong", [report.report_date, statusLabel[report.status]].filter(Boolean).join(" · ")));
+      const details = node("details");
+      details.name = "patient-reports";
+      const summary = node("summary");
+      summary.append(node("b", report.report_date || "Report #" + report.id), node("span", statusLabel[report.status] || "Review status unavailable"));
+      details.append(summary);
       const values = node("ul");
       for (const test of report.tests ?? []) values.append(node("li", reading(test)));
       if (!values.children.length) values.append(node("li", "No readable test values"));
       const layout = node("div");
       layout.className = "source-layout";
       layout.append(reportSource(report), values);
-      row.append(layout);
+      details.append(layout);
+      row.append(details);
       records.append(row);
     }
     $("patient-detail").append(node("h3", patient.name), reports.length ? records : node("p", "No reports for this patient yet."));
@@ -364,6 +399,7 @@ async function openWorkspace() {
   const view = query.get("view") || linkedView[location.hash] || "overview";
   activeWorkspace = Object.hasOwn(workspaceViews, view) ? view : "overview";
   openedReport = "";
+  queuePage = 0;
   const [title, description, visible] = workspaceViews[activeWorkspace];
   document.body.dataset.workspace = activeWorkspace;
   document.title = "Nabz · " + title;
@@ -409,7 +445,9 @@ window.addEventListener("popstate", openWorkspace);
 $("patients").addEventListener("change", () => loadPatient($("patients").value));
 $("refresh").addEventListener("click", loadInbox);
 $("heat-refresh").addEventListener("click", loadInbox);
-$("pending-only").addEventListener("change", renderInbox);
+$("pending-only").addEventListener("change", () => { queuePage = 0; renderInbox(); });
+$("queue-prev").addEventListener("click", () => { queuePage--; renderInbox(); });
+$("queue-next").addEventListener("click", () => { queuePage++; renderInbox(); });
 api("health")
   .then(data => { $("server").textContent = data.ok ? "Clinic connected" : "Connection unavailable"; })
   .catch(() => { $("server").textContent = "Clinic disconnected"; });
