@@ -300,14 +300,10 @@ def patient_detail(pid):
 
 
 def clear_data():
-    # Demo reset: clear all report data and uploaded files, keep settings.
-    # Seeded patients stay; patients created from uploads are removed.
+    # Demo reset: clear all patients, reports and uploaded files, keep settings.
     with db.get_db() as conn:
-        for table in ("alerts", "messages", "test_results", "reports"):
+        for table in ("alerts", "messages", "test_results", "reports", "patients"):
             conn.execute(f"DELETE FROM {table}")
-        for p in conn.execute("SELECT id, name, age, sex FROM patients").fetchall():
-            if (p["name"], p["age"], p["sex"]) not in db.PATIENTS:
-                conn.execute("DELETE FROM patients WHERE id = ?", (p["id"],))
     if os.path.isdir(UPLOAD_DIR):
         for name in os.listdir(UPLOAD_DIR):
             path = os.path.join(UPLOAD_DIR, name)

@@ -32,15 +32,6 @@ CREATE TABLE IF NOT EXISTS settings (
 CREATE UNIQUE INDEX IF NOT EXISTS ux_reports_msg ON reports(source, message_id);
 """
 
-# Fictional patients only
-PATIENTS = [
-    ("Asha Verma", 54, "F"),
-    ("Ravi Menon", 67, "M"),
-    ("Meera Iyer", 38, "F"),
-    ("Karan Shah", 45, "M"),
-    ("Fatima Khan", 72, "F"),
-]
-
 # Urgency bands: % outside the printed range, plus alert keywords
 SETTINGS = {
     "watch_pct": "10",
@@ -57,7 +48,7 @@ def get_db():
 
 
 def init_db():
-    # Create tables if missing, then add demo data
+    # Create tables if missing, then add the default settings
     with get_db() as conn:
         conn.executescript(SCHEMA)
         # Older database files may lack report_date
@@ -68,11 +59,8 @@ def init_db():
 
 
 def seed():
-    # Fill patients and settings only if they are empty
+    # Add any missing default settings. Patients come only from reports.
     with get_db() as conn:
-        if conn.execute("SELECT COUNT(*) FROM patients").fetchone()[0] == 0:
-            conn.executemany(
-                "INSERT INTO patients (name, age, sex) VALUES (?, ?, ?)", PATIENTS)
         conn.executemany(
             "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)",
             SETTINGS.items())

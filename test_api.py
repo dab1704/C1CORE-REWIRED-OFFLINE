@@ -89,7 +89,7 @@ class ApiTest(unittest.TestCase):
         app.clear_data()
         self.assertEqual(self.client.get("/api/inbox").get_json(), [])
         self.assertEqual(os.listdir(app.UPLOAD_DIR), [])
-        self.assertEqual(len(self.client.get("/api/patients").get_json()), len(db.PATIENTS))
+        self.assertEqual(self.client.get("/api/patients").get_json(), [])
         with db.get_db() as conn:
             self.assertEqual(conn.execute("SELECT COUNT(*) FROM settings").fetchone()[0],
                              len(db.SETTINGS))
@@ -117,11 +117,9 @@ class ApiTest(unittest.TestCase):
             a = app.find_or_create_patient(conn, "DEEPA RAO", 38, "F")
             b = app.find_or_create_patient(conn, "deepa rao", 38, "F")  # same patient
             c = app.find_or_create_patient(conn, "Deepa Rao", 39, "F")  # other age
-            seeded = app.find_or_create_patient(conn, "ASHA VERMA", 54, "F")  # seeded row
             name = conn.execute("SELECT name FROM patients WHERE id = ?", (a,)).fetchone()[0]
         self.assertEqual((a, name), (b, "Deepa Rao"))
         self.assertNotEqual(a, c)
-        self.assertEqual(seeded, 1)  # matched the seeded "Asha Verma", no duplicate
 
     def test_reset_restores_the_25_demo_reports(self):
         self.upload("report_10_A.png")  # some other data that reset must replace
@@ -137,6 +135,18 @@ class ApiTest(unittest.TestCase):
         res = self.client.get(inbox[0]["image_url"])
         self.assertEqual(res.status_code, 200)
         res.close()
+
+    def test_fresh_database_has_no_patients_then_demo_loads_23(self):
+        self.assertEqual(self.client.get("/api/patients").get_json(), [])  # nothing seeded
+        self.assertTrue(demo_seed.load_seed_if_empty(app.UPLOAD_DIR))
+        with db.get_db() as conn:
+            self.assertEqual(conn.execute("SELECT COUNT(*) FROM reports").fetchone()[0], 25)
+            names = [r[0].lower() for r in conn.execute("SELECT name FROM patients")]
+            no_reports = conn.execute("SELECT COUNT(*) FROM patients WHERE id NOT IN"
+                                      " (SELECT patient_id FROM reports)").fetchone()[0]
+        self.assertEqual(len(names), 23)
+        self.assertEqual(len(set(names)), 23)  # no duplicate names
+        self.assertEqual(no_reports, 0)  # every patient comes from a report
 
     def test_reset_needs_admin_token_when_set(self):
         self.upload("report_10_A.png")

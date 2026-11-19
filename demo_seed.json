@@ -1,36 +1,6 @@
 {
  "patients": [
   {
-   "id": 1,
-   "name": "Asha Verma",
-   "age": 54,
-   "sex": "F"
-  },
-  {
-   "id": 2,
-   "name": "Ravi Menon",
-   "age": 67,
-   "sex": "M"
-  },
-  {
-   "id": 3,
-   "name": "Meera Iyer",
-   "age": 38,
-   "sex": "F"
-  },
-  {
-   "id": 4,
-   "name": "Karan Shah",
-   "age": 45,
-   "sex": "M"
-  },
-  {
-   "id": 5,
-   "name": "Fatima Khan",
-   "age": 72,
-   "sex": "F"
-  },
-  {
    "id": 32,
    "name": "Kavita Reddy",
    "age": 52,
