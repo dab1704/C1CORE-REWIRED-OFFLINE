@@ -1,0 +1,16 @@
+{
+  "name": "nabz-bot-avatar",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild avatar.js --bundle --minify --legal-comments=inline --define:process.env.NODE_ENV='\"production\"' --outfile=../../static/nabz/bot-avatar.bundle.js"
+  },
+  "dependencies": {
+    "bot-avatars": "0.2.2",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}
