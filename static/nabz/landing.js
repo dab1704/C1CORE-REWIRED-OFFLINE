@@ -8,7 +8,8 @@ const chars = '@#%+=:·01/';
 const clamp = n => Math.max(0, Math.min(n, 1));
 const smooth = n => { n = clamp(n); return n*n*(3-2*n); };
 const mix = (a,b,t) => a+(b-a)*t;
-let clock, w, h, introFrame = 0, introVisible = true;
+let w, h;
+const heroEpoch=performance.now();
 const points = [];
 for (let layer=0;layer<3;layer++) {
   for (let row=0;row<32;row++) {
@@ -27,7 +28,8 @@ for (let layer=0;layer<3;layer++) {
 function paint(ms) {
   const t=clamp(ms/3500);
   const gather=smooth((t-.09)/.57), turn=smooth((t-.46)/.54);
-  const yaw=-.48+turn*.83, pitch=.18-turn*.27;
+  const drift=gate.matches?0:Math.sin(ms/4200)*.20;
+  const yaw=-.48+turn*.83+drift, pitch=.18-turn*.27+drift*.5;
   const c=Math.cos(yaw),s=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
   ctx.fillStyle='#101111';ctx.fillRect(0,0,w,h);
   const step=w>500?30:22;
@@ -36,7 +38,8 @@ function paint(ms) {
   for(let y=0;y<h;y+=step){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
   const ix= w*.51, iy=h*.50, size=Math.min(w/35,h/42);
   ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='600 '+Math.max(8,size*.9)+'px monospace';
-  const scan= -17+turn*38;
+  const scan=gate.matches?4:Math.sin(ms/1800)*16;
+  const seq=gate.matches?0:Math.floor(ms/110);
   for(const p of points) {
     const separated = turn * p.layer;
     const x0=p.x + separated*3.4;
@@ -50,8 +53,7 @@ function paint(ms) {
     const bright=p.selected||Math.abs(p.y-scan)<1.2;
     ctx.globalAlpha=(p.layer===0?.95:.38)*mix(.27,1,gather);
     ctx.fillStyle=bright?'#f6f3e8':p.layer===0?'#b0bdf4':'#6878a0';
-    const seq=t>.85?0:Math.floor(ms/67);
-    ctx.fillText(chars[(Math.floor(p.random*chars.length)+seq)%chars.length],sx,sy);
+    ctx.fillText(chars[(Math.floor(p.random*chars.length)+seq*(p.random>.88||Math.abs(p.y-scan)<.9))%chars.length],sx,sy);
   }
   ctx.globalAlpha=1;
 }
@@ -62,10 +64,24 @@ function resize() {
   w=rect.width;h=rect.height;
   canvas.width=Math.round(w*scale);canvas.height=Math.round(h*scale);
   ctx.setTransform(scale,0,0,scale,0,0);
-  paint(gate.matches||!clock?3500:performance.now()-clock);
+  paint(gate.matches?3500:performance.now()-heroEpoch);
 }
 
 new ResizeObserver(resize).observe(canvas);resize();
+let heroOnscreen=false,heroAnimation=0,lastHeroPaint=0;
+function animateHero(now){
+  heroAnimation=0;
+  if(!heroOnscreen||document.hidden||gate.matches)return;
+  if(now-lastHeroPaint>=32){paint(now-heroEpoch);lastHeroPaint=now;}
+  heroAnimation=requestAnimationFrame(animateHero);
+}
+function startHero(){
+  if(gate.matches){paint(3500);return;}
+  if(!heroAnimation&&heroOnscreen&&!document.hidden)heroAnimation=requestAnimationFrame(animateHero);
+}
+new IntersectionObserver(([entry])=>{heroOnscreen=entry.isIntersecting;startHero();}).observe(hero);
+document.addEventListener('visibilitychange',startHero);
+gate.addEventListener('change',startHero);
 const opening=document.getElementById('intro-screen');
 const fullSignal=document.getElementById('intro-canvas');
 const fullContext=fullSignal.getContext('2d');
@@ -227,12 +243,12 @@ void main(){
   float softbox=pow(max(dot(n,top),0.),17.)*.86+pow(max(dot(n,right),0.),23.)*.64;
   float sheen=pow(max(dot(n,normalize(vec3(.20,-.58,.76))),0.),13.)*.24;
   bool highlight=abs(hit.a*255.-selected)<.44;
-  vec3 tint=highlight?vec3(.95,.37,.50):vec3(.57,.66,.72);
+  vec3 tint=highlight?vec3(.89,.22,.22):vec3(.57,.66,.72);
   vec3 fringe=vec3(.58,.69,.90)+vec3(.25,.14,0.)*max(n.x,0.);
   vec3 fill=frosted*1.75+tint*(.07+pow(facing,.7)*.14);
   fill+=(softbox+sheen)*mix(vec3(.76,.83,.89),tint,highlight?.57:.12);
   fill+=rim*fringe*(.42+max(n.y,0.)*.19);
-  if(highlight)fill+=vec3(.28,.05,.09)*(.38+facing);
+  if(highlight)fill+=vec3(.30,.035,.025)*(.38+facing);
   pixel=vec4(fill,1.);
 }`;
   function program(vs,fs){
@@ -398,12 +414,12 @@ atlasSwitch.addEventListener('click',()=>{
 
 const deckRegion=document.getElementById('patient-roll'),deck=document.getElementById('patient-deck');
 const caseData=[
-  ['Asha R.','Lab flag on report','crimson','Potassium report','Compare the extracted value with the source before recording follow-up.'],
-  ['Ravi S.','Needs verification','mustard','Cropped haemoglobin report','Request the full image so the unit can be checked.'],
-  ['Meera K.','Reviewed','blue','Repeat lab report','The clinician recorded a follow-up for this report.'],
-  ['Dev P.','Awaiting review','blue','Lipid panel','Open the source report and record the next action.'],
-  ['Ira N.','Patient match needed','mustard','Report from a shared number','Confirm who the report belongs to before adding it to history.'],
-  ['Kabir A.','Follow-up pending','crimson','Follow-up blood test','The report was acknowledged. The follow-up still needs an owner.']
+  ['Ravi Shankar','Outside printed range','red','Potassium report','Compare the reading with the screenshot before confirming.','6.8 · Printed range 3.5–5.1'],
+  ['Deepa Rao','Below printed range','mustard','Haemoglobin report','Check the value against the report and record your review.','11.2 · Printed range 12.0–15.0'],
+  ['Nandini Hegde','Within printed range','blue','Thyroid panel','The screenshot records a TSH result within the range printed by the lab.','2.0 · Printed range 0.40–4.00'],
+  ['Kavita Reddy','Repeat results','mustard','Fasting glucose history','Compare the report dates and check units when reviewing this trend.','140 on 12 Aug → 165 on 30 Sep'],
+  ['Imran Sheikh','Multiple out-of-range readings','mustard','Lipid panel','Check both the upper and lower limits printed on the report.','LDL 168 · Printed upper limit 100'],
+  ['Savitha Gowda','Outside printed range','red','Sodium report','Check the value and the source report before confirming.','121 · Printed range 135–145']
 ];
 const glyphs=["                                                          \n                        .......                           \n                      .,,..,:irri:...                     \n                    ...    ::,:;sr;,.:.                   \n                   .     ,::;,  ,;i;,,:..                 \n                         ,;;rs;.  ,i;,,,  .               \n                       .;rsX235Ar;,:;i..   .              \n                      ;X53hMHHHHhhA,:;;.                  \n                     :rA3hMHHGGSS#HX,.,:::,               \n                    .isA5hhMHGGGS##HX  :,,.               \n                    iX25hHHGGGS#9BBB#h;.:,,.              \n                  .isssXA5hMHHM32AA53h3i;.,               \n                  :;iii;,,:s3G3si;r2hMMAi;                \n                 .:;:::;Xr,,29SA;;,iXrAXrX  ,.            \n                 ,i;..::Xs::2#SMArrX55MhXX,.Xi            \n              .. :rAAsXXXXsr2#9##GHGS#99Ms,s2s .          \n              .: :X23MMh35sXh#B##BB9B&&9S5;i5r  .         \n               ,..rX2hMM3Asr2H#HGMG9BB9#G2s55;            \n                ;,;rX2335si:;X3hG#HGSSSSHA5GA,,           \n                i;:irXA22AAX23hGSSGHHGGHM255, ,           \n                 ,,iirssXi;;isA222X3HHHGMr .. .           \n                   :irrXXriisA2hhMM3HGGH2,..:.            \n                    ,iirrssXXAA5MHGHMMhA;,,,i;            \n                     ::;irX2hHGS#SGM525s..,:::,           \n                     ::,,:irA525332XA3Ms   ,...           \n                     :;;,,,,:;;irsA5hHHs  ...             \n                     :;ii;::;isX23hHHHH5. .    .          \n                  ,:;;iirri;is23hMMHHHMM3Ai,              \n              .. rsriiirrssirX23MMHHMMMMHMhh3X.,.         \n          ,:,,:, iXsiirirXAAXX23MHHMhMHHGGGGS3:iAi;,      \n     .:ii:;;;,:, ::;irrr;rA55223hMMMMHGSS#SShrisA;rXri;.  \n  ,;:iiriri;i,.,:,  :sA2XrXhMMh33HGSSSSSS3AsrsA2i;XXXirrr;\n:irisrrs;iii:::::,. :233555MSGHhHS##SSSSH;rXsXss,rAsXiXXsr\n;;;:iiir;;ii.i;,:,.  s5553MMMMhhMhHHHHHHHr::;irs,irsi:srrr", "                              .                           \n                      .,,,:,,,. .,..                      \n                   ,. ,,:,,,:::..,, .,.                   \n                 .,,,:      . :,,,. .,,                   \n                ,...,:        .. ,  ,,  ...               \n               .,  .  .   .,          , ,,:               \n              .        .  ,,::;;;;:.     ,::              \n              .     ,,.. ,isA533hh32Ai,  :::              \n                   ,rriisAA53hHMMMHGGhA..:,.              \n                  .rsA253hMMMMMHGSSGGGhs,,.,,             \n                  iXA2553MHGHHMSSGHh5hH3,                 \n                 .ri;:::,:irAhsr;,;sAAX3A                 \n                 :i..:iisi. rHhr,;:XAs233.                \n                 ;si,.::AA:,AGG3XrrA2AMGHi i.             \n              ;: iA32sssss;r3SSGHMhhMGGSHsAMX             \n             ,:i.iX23hh33AX2M#9SS##S###SH23GM.            \n              i;.rsXA3MM3XX;i25XhSS999SGH52H3             \n              ;r::rsX25332r .i;;ASS##SGGMX5Hi             \n               Xs.;ssXAAsi, :;:::iX3GGGH5r3M              \n               rs..:rss,  ,;sXA2X; ,3M32XiXi              \n                   .,;i.:rrrXss23M5:25Xsi:                \n                     .,.;rriiir2hM3ssXr;:                 \n                        .irXX253hhAi:;,:,                 \n                  .;.    ..,:,,:;ii,  ,5X                 \n                ;i :i,               r3HsAi               \n              ,sX: ,ri,          .,;XhHMi23s              \n             :XAs. ,iiri:,..:;rXAA5hHHH3:A32AXi:          \n        .;;;issXs: .;iiri:::;s555hHGHGHriA5XA2Asssi,      \n     :isXr,:issssr,.;;;isr;;;iX25hMHHHA rAXX552s:X2AXsi,  \n  ;rsssss,,issrsXXs:;ri;rXXrsA23hMMMhA. ii  i55X,r2XXAAAXi\nsXXXssrsr:;rsrsrsAAs;X2sis252253hMM3A;  ;;   X2A:i2AssXXsr\nssssssrsr;;ssr; :2AXrs532A5hMMhhhMM5i:  ;AsisAAA;i2AXsrXXr\nssssrrssri;i:    iXsAss5MMHHHGHHMMhXrri:;AXAAAAAir2AXXrrsr\nirri;rsriiii;,,.    ;srr2hHMMMMh32siirrsssrsssssirXXssrirr", "                                                          \n                        .:;:,,,..                         \n                     .;i;:,..:;;;;.                       \n                  .,;ri,   .,:;;;iii;                     \n                .,;r;.  ...;i;;,..:rAX,                   \n               .,,;;:;:isAAXXAA2As;,i2s .,                \n              :.   ;;:isXA53hhMHHHM5r;Ar. ..              \n             :,.   .,:rX553hMHHGGS#SHX;i;;;:,             \n            ,,       :sA53hhMHGGGS##SH5,,rsi;             \n            .       ,s253hHHGGGGS#99#SG5:,:,:.            \n           .       :s2XsrX2hHHMGHM3553hH5,. ..            \n                  .;rrrsr;::r2HH2Xrs5MHhhr...,.           \n                  :r;;i;r2s; sH#5r;:r22hG5  ...           \n                 ,ss;:::;2X;,AGShXris52hGH,  ,.           \n           ,...  ;X22AXssXXrs2G#SGM3hMHGSGi,,::           \n          ,:,.   :sA53hh335sXhS99###SS###GAi,.,           \n         .,.  .  :rXA5hMMhssri2HhHMH#999SG5A,             \n           ...,:.:isX253hhXr:;XhhhShH###SH5r,             \n             ..ii:irrsA22222A5MhS##GhMGSGM5,              \n               .riiiirsXsr;;;rX255553hHGGMX               \n                  :riirXAsiiiX25hMMh5HGGGA                \n                   :iiirsssXXA223HGSHMHG2                 \n                   ,;;;;irrA5hHGSSSGHMMX                  \n                   .;:,:,:;isA553hh5A5M;                  \n                   .i;:,,,,,,:;;irsAhGS;                  \n                  ,iiii;:,,,:;rs25hHGSSs                  \n             .:irssrirrrri;;;rA3hMGSSSGM5Xr:              \n         ,iX222AXssrirssXXrirX2hHGGGGGHHHMHHHhA;          \n     .;A53hhh335AAXsrrrsA22XA23MHGGGGGHGGGGGSGM2A2AAr;,   \n .:;;;;sMHMhMhh33552AssrrA3hh3hMHGGHHGGGHh352ssXAX2XA5AXs;\niii;;;;:iMGMMhMh35533552AX5HGSGHHGGGHM3552AArsXAXAAA5AAAXX\n;;;;;;;;:iMGMMhMh333333hhMMHSSSGGGM355552srrsrAAX2X52X5AAX\n:::::,:;;;rHGHMMMMMMMMMMMGGGGGHM3555352XssrssX2X2A53X22A2X\n.,,,:,..:;:ihMhhhhhhhhhhhMMh3222AAA2AsrrrirriAssAs5AsAsXAr", "                           ,,                             \n                    r252AX5h32Xr;.                        \n                  :s3MhhhHHh553hh5Xi:                     \n                 :X2AA22525522AAAAX22Xr.                  \n                .A3225222AA53333522AXA2Ai                 \n                r22AA25h35333hMhhhh52AA5h2,               \n               .A2rsXA5253hMMHGGGSSHh2A2HSh,              \n               s5XirXXAA53MMHHHMMHHGHh22M9Ss              \n              .A2XiisX2253MHHMMMGSSGHM52hHS3              \n              ,2Xr:;sXA223hHMH3MMMhh33522HGM:             \n              ,AX;:isXXsrrrrsM5r;;iX22A22MGM,             \n               rAi:;:;iirri.;MH2i;;isXA25GSM,             \n               :XXii,,..;X;.XGM35XX533hM5HS2;             \n               :X5isXriii;:rMGH33h53HHHGhhS3X             \n               :r2;s22AsirrAH#9GMhGGGGMH353M5             \n               ;;i;;rssXAsr;s3M55h2M#SHh55HMr             \n               .rri;rrA52;;irs2hMSGXhGMM33M3              \n                iXrissA2A5hHHM5HS99BMMMH33M5              \n                .srrrXXshHh2srssX25G9HMh332;              \n                 :;iisss3A;;isA53352MHMM32.               \n                   :;rsAAXAXXA223HHHhhhh2i                \n                    ;irrsAX253MHHHMMM335X;                \n                   si:;iirsXA533hMhh5X25r2i               \n                 :5A.;::,,:::;rrrssriX5h;:M;              \n                sh3; ;;:,........:irA5hM:;hH2s,           \n            ,iA3Mh5: .;:::,,,;i:,sA23hM5,AhG##SH3X:       \n        ;X5h5hGHMh5r .;ii;;::rsr,rA5h3hsrMMHS###S99ShX:   \n     i2MGSH55GGHHMMh; :irrr;:i;r;i53335i2HHHS###MGG#999HA,\n .r5MGGGGM52HGHHHGSS5 ,iirXsiirAAr3h33s22GSGS###HGHG#SS#9h\n2MHHHHHGH35MGGGHh53SGi:irirX2sirrs335A2hhHhMG#99SHHGSGGSS3\nMHMMHHHHh3hGHhA;   sHG3Xsrss5h5ArX323hMMHX  :X3S#HHSGHGG#3\n3MM33HHHh25Ai:,::,,:;XHGh22h3MHh5325h5533si;:,.rHGGSGHHGS3\n5hM32hHHMh32AAAAXsiii:iH##HMMhMh522Xi;s5h3333333HHHGGHHHG5\n55hh52hHMMh355552AXXrriiXhSGh552XAXrs23hMhhMMMMGHMHHHMMMH5", "                         ,::,;;:,,,.                      \n                   ,,..,;i;::,..,.,,,,                    \n                  ::,;rri;,.  ....,,,::,.                 \n                .,,,:;;,:   ..        ,:,..               \n              ::.:..,,:.  ..   ,:,..,:,:;.,,.             \n            .:, ,; ..  .  .,,;s55552s: :;. ,,             \n            ,:,:i. .. .  :rX23hMHHGSM2i.:. ,,,            \n            :;::     .  ;s233hMHGG###H5r,  :,,,,,         \n           .. ,.    ,, :sA533hMHHGGS#SGhr .,, ,,::        \n        .,:,  ..      :X25hMMHHHGSSSSGGHHA    . ,:.       \n       .,::,  .      ,irrrsA23MHHhArsA5h3hs      .,       \n      .,,,...        ,rsssr;:;AHH2srr23hMM3  , ::,..      \n      ,..  ,... .:. .;;,,,A2r:iH#3ri,:Xi2HH: . :;;.       \n          ..  :,   .:;. ::X2riih#G3AA253MSSX   .:;.       \n                   .isssXAA2Assh9##SGGS###S5        .     \n                   .iX23hh33AsAH#9#S999999#5       ,:.    \n                   .iX25hMM3rr:r555HH#999#S2. . : .,      \n       ,   .        ;sA25hMh2XX5hSS#GGS##SHA      .       \n       .,           :rsA53555523hMHSSGGSGGMi,. .  ..::..  \n                    ,irXA22Ai;iXA2522hGGGGh    :..,:.,,.  \n             ,,      ;sXX25XssXAA5hHGMHHGHi    :,:    .   \n                      issXXssA53hMHGGGHHhi    .:, ..      \n                       :irrsX23MHGSSGM33r     .. .,:.     \n               .       :,,,:;irXA222AA53i    .     .      \n                       ;i;:,,,::;irX5MHhr   ;.   . ..     \n                       ;rXsi;irsA53hHGGhr                 \n                       :rX2AssX23hMHGGH3;         ,       \n                       .isA2XX25hHHGGHM5: ,.              \n                       :iirXAA253MMHHh35s:.:   ,          \n                     ,:isr;iX2225hhMMhhMh5srsX5MAr;:,     \n     ,::,,...  .,,:irsssA2Xrs5hhhhMHGGGGGHHMHHGGArrrrrrri:\n .;ii;;;;;::::,.,;sA22222253hhHGGHHHGSGHHMMMHH3Xrrssrrrssr\n,:;ii;;;i;;;;;;;:::iX5hhhhhMGHHGGGGHGSSSGSSH3Asrrsssrrrrri\n,:,:i;ii;i;i;;;;i;;:::is23hMMHHHHHHHHGGHM3Arrirrrrrsrrrrri", "                        .,:. :::.                         \n                       ,;:,;rsi;;;,.                      \n                     .::::.:ii;::rr: .:,                  \n                   .,,:,....,:i;. ,i;,,;;,                \n                  .,.,  .,;:;irrri, ,r,.ii.               \n                :,    ,;rsX223hh335s:,i.:i::              \n               ..  ,isAA533hhMHHHGHM5X; .,.;;             \n                 .;sssXA253hMHHHGGHMh32X::: .             \n                 ;rrrrsA553hMMMMMHHhhhh3A;:               \n                 ;rrrX25hMHGHMMHGSGHh3hM3r.               \n                 ;irii;;rA3MMM352XXXAAA5hA                \n                 ;;,,;ri;:,;XMhsi;;s222A55.   ;.          \n                 ;:..,:;2Xi.rhM5Xrii2XX255i .,.           \n                 i;:,:iiXAr;XMHh32A23333h5rrr.            \n               ..isXXssssXrs3HSHMHMhMMMMh3X3h,            \n               .,irsXAAA2XXA3S9SHHGGHGHHh323M,            \n               ::rirsA235r;,i2h35HMGSGGHH353h             \n               .;irrsX235s;,,:,;s5hMSGHHM523A             \n                ;;irrsXs;,. ,;;:,::shGHMh5A5r             \n                .;:;iir;,.,;sXA52Ai:2Hh3522i              \n                 ,::;;irri;;irrX3MM2A3552AA               \n                  ,,::,;iirXA25hHM32AA22s2:               \n                   ..,.:;;sA233hh35ArrXXX:                \n                    ,,  .;sAXsrX252sisA25:                \n                   .;:,  .:;, ,;rsrXX25h3:;               \n                  ..,;;::,.,;ssA53353hMH5,s;.             \n             .,,:.,, :irr;::iX3hhhhHHHHHs:s2XXr;,         \n         .:;;;:;,,,:: :rss;;;iX5hMMHHHH2,rsAAA2AAAs;,     \n      ,;iii;;;;;:,::;i,:rXXrrXA3MMHHHM5:;rsAAXAAAAAAAXs;  \n  ,;irrriiiii;;;::;i;ssi:iXAXA53hHHHh5;:rrrAAXXAXXXXXXXXXr\n;irriiriiiii;;;:,;ir;;;sriX333hhMHGMhs:;;srAAAXXXsssXssssr\n;iiiiiiiriiii;;:,;;,    iX23MMMMHHGH2i;iir  rAXXXsrXXssrri\n:ii;iiiiriiii;;,,:.      :A333hhMMM2s;;ir,  :XXXXrrXsssiri\n,;i;ii;;rriiii;:::,,,.     iX25335srr:;ri:, .XsssrrXssr;ri"];
 function fallbackPortrait(seed){
@@ -447,15 +463,17 @@ function drawDeck(){
       opacity:String(Math.abs(d)>2?0:1-Math.abs(d)*.15)
     };
     Object.entries(values).forEach(([key,v])=>card.style.setProperty('--card-'+key,v));
-    card.style.zIndex=String(10-Math.abs(d));card.setAttribute('aria-hidden',String(d!==0));
+    card.style.zIndex=String(10-Math.abs(d));
   }
 }
 function selectPatient(i){
   currentPatient=(i+deckCards.length)%deckCards.length;
-  const [name,status,tone,title,action]=caseData[currentPatient];
+  const [,status,tone,title,action]=caseData[currentPatient];
   rollCount.textContent=(currentPatient+1)+' / '+deckCards.length;
   deckStatus.textContent=status;deckStatus.dataset.tone=tone;
-  deckTitle.textContent=title;deckAction.textContent=action;drawDeck();
+  deckTitle.textContent=title;deckAction.textContent=action;document.getElementById('deck-reading').textContent=caseData[currentPatient][5];
+  deckCards.forEach((card,index)=>card.setAttribute('aria-hidden',String(index!==currentPatient)));
+  drawDeck();
 }
 let deckFrame=0,deckBounds=null;
 function queueDeckDraw(){
@@ -466,15 +484,18 @@ function finishDeck(event,cancelled=false){
   const delta=event.clientX-swipeState.x;
   const lift=Math.abs(event.clientY-swipeState.y);
   const elapsed=Math.max(16,event.timeStamp-swipeState.started);
-  const swipe=Math.abs(delta)>=23||(Math.abs(delta)>=13&&Math.abs(delta)/elapsed>=.48);
+  const swipe=Math.abs(delta)>=22||(Math.abs(delta)>=12&&Math.abs(delta)/elapsed>=.4);
   cancelAnimationFrame(deckFrame);deckFrame=0;
   swipeState=null;deckRegion.classList.remove('dragging');
   deckX=0;deckTiltX=0;deckTiltY=0;
-  if(!cancelled&&swipe&&Math.abs(delta)>lift)selectPatient(currentPatient+(delta<0?1:-1));
+  if(!cancelled&&swipe&&Math.abs(delta)>lift){
+    const last=currentPatient===deckCards.length-1;
+    selectPatient(last?0:currentPatient+(delta<0?1:-1));
+  }
   else drawDeck();
 }
 deckRegion.addEventListener('pointerdown',event=>{
-  if(!event.isPrimary||event.button!==0)return;
+  if(!event.isPrimary||event.button!==0||swipeState)return;
   swipeState={x:event.clientX,y:event.clientY,id:event.pointerId,started:event.timeStamp};
   deckRegion.setPointerCapture(event.pointerId);deckRegion.classList.add('dragging');
 });
@@ -488,6 +509,7 @@ deckRegion.addEventListener('pointermove',event=>{
 deckRegion.addEventListener('pointerleave',()=>{deckBounds=null;if(!swipeState){deckTiltX=0;deckTiltY=0;drawDeck();}});
 deckRegion.addEventListener('pointerup',event=>finishDeck(event));
 deckRegion.addEventListener('pointercancel',event=>finishDeck(event,true));
+deckRegion.addEventListener('lostpointercapture',event=>finishDeck(event,true));
 deckRegion.addEventListener('keydown',event=>{
   if(!['ArrowRight','ArrowLeft'].includes(event.key))return;
   event.preventDefault();selectPatient(currentPatient+(event.key==='ArrowRight'?1:-1));
@@ -509,8 +531,6 @@ function updateScroll(){
     const rect=section.getBoundingClientRect();
     const progress=gate.matches?1:clamp((viewport*.91-rect.top)/(rect.height-viewport*.15));
     section.style.setProperty('--progress',String(progress));
-    section.style.setProperty('--shift',((progress-.3)*105)+'px');
-    section.style.setProperty('--tilt',(12-progress*22)+'deg');
     if(rect.top<viewport*.54&&rect.bottom>viewport*.54)active=section.id;
 
   }
@@ -527,56 +547,5 @@ reportLayer.addEventListener('click',()=>{
   document.getElementById('report-stage').classList.toggle('readout-front',front);
 });
 
-for(const [selector,key,id,messages] of [
-  ['[data-reading]','reading','reading-detail',[
-    '12 Nov · 4.3 mmol/L · Lab X baseline report',
-    '19 Nov · 6.1 mmol/L · Lab X repeat report'
-  ]],
-  ['[data-review-step]','reviewStep','review-detail',[
-    'Asha’s screenshot entered the review queue with the original attached.',
-    'Dr. Rao acknowledged the report. The follow-up stayed open.',
-    'Dr. Rao assigned the next action to the clinic assistant and recorded it in the case.'
-  ]]
-]){
-  const buttons=[...document.querySelectorAll(selector)];
-  const detail=document.getElementById(id);
-  for(const button of buttons)button.addEventListener('click',()=>{
-    for(const item of buttons)item.setAttribute('aria-pressed',String(item===button));
-    detail.textContent=messages[Number(button.dataset[key])];
-  });
-}
-
-const sceneCut=document.createElement('div');
-sceneCut.className='chapter-cut';
-sceneCut.setAttribute('aria-hidden','true');
-document.body.append(sceneCut);
-const chapterBackdrops=sections.map(chapter=>getComputedStyle(chapter.previousElementSibling).backgroundColor);
-
-function animateChapters(){
-  if(gate.matches){sceneCut.hidden=true;return;}
-  const height=innerHeight;
-  let edge=null;
-  for(const [index,chapter] of sections.entries()){
-    const top=chapter.getBoundingClientRect().top;
-    const open=smooth(clamp((height*.94-top)/(height*.57)));
-    chapter.style.setProperty('--open',open.toFixed(3));
-    chapter.style.setProperty('--depth-turn',((1-open)*13).toFixed(2)+'deg');
-    chapter.style.setProperty('--depth-lift',((1-open)*72).toFixed(1)+'px');
-    if(top>height*.32&&top<height*.88)edge={top,open,index};
-  }
-  sceneCut.hidden=!edge;
-  if(edge){
-    sceneCut.style.setProperty('--edge',edge.top+'px');
-    sceneCut.style.setProperty('--edge-depth',Math.sin(edge.open*Math.PI).toFixed(3));
-    sceneCut.style.setProperty('--outgoing-color',chapterBackdrops[edge.index]);
-  }
-}
-let revealFrame=0;
-function queueChapterAnimation(){
-  if(revealFrame)return;
-  revealFrame=requestAnimationFrame(()=>{revealFrame=0;animateChapters();});
-}
-addEventListener('scroll',queueChapterAnimation,{passive:true});
-addEventListener('resize',queueChapterAnimation);
-gate.addEventListener('change',queueChapterAnimation);
-animateChapters();
+const intakeDemo=document.getElementById('intake-demo');
+new IntersectionObserver(([entry])=>intakeDemo.classList.toggle('is-visible',entry.isIntersecting),{threshold:.25}).observe(intakeDemo);

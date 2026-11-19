@@ -15,27 +15,38 @@
 <div class="hero-visual"><canvas id="signal-canvas" aria-hidden="true"></canvas><div class="instrument-label"><span id="signal-phase">REPORT / SIGNAL</span><span>LAB X · SYNTHETIC</span></div></div>
 
 </section>
-<section class="chapter capture" id="intake" aria-labelledby="intake-title"><div class="scene">
-  <div class="copy"><h2 id="intake-title">From chat to <em>case.</em></h2><p>A screenshot from WhatsApp becomes a case. The original image stays attached so the clinic can review exactly what was sent.</p></div>
-  <div class="art"><div class="orbit"><div class="tile source-tile"><small>WHATSAPP · INCOMING</small><b>Lab report</b><small>Screenshot attached</small></div><div class="tile case-tile"><small>CLINIC INBOX</small><b>New report</b><small>Awaiting review</small></div></div><span class="scene-label">IMAGE → CASE</span></div>
+<section class="chapter capture closing" id="intake" aria-labelledby="intake-title"><div class="scene">
+  <div class="copy"><h2 id="intake-title">From chat to <em>case.</em></h2><p>One WhatsApp screenshot becomes a review item with the original attached.</p></div>
+  <div class="intake-demo" id="intake-demo">
+    <article class="chat-card">
+      <header><i aria-hidden="true">↗</i><div><b>Clinic WhatsApp</b><small>Synthetic conversation</small></div></header>
+      <div class="chat-bubble"><img src="/nabz/demo-report.png" alt="Synthetic Lab X report attached to the message" loading="lazy"><p>Doctor, sharing my lab report.</p><small>12:44</small></div>
+    </article>
+    <div class="intake-signal" aria-hidden="true"><span></span>↗</div>
+    <article class="intake-case">
+      <header><b>Review queue</b><span>Original attached</span></header>
+      <h3>Ravi Shankar</h3>
+      <dl><div><dt>Report date</dt><dd>18 Nov</dd></div><div><dt>Reading</dt><dd>Potassium 6.8</dd></div><div><dt>Printed range</dt><dd>3.5–5.1</dd></div></dl>
+      <p>Awaiting clinician review</p>
+    </article>
+  </div>
+  <a class="feature-link" href="/nabz/clinic.html#upload-panel">Upload a screenshot <span aria-hidden="true">↗</span></a>
 </div></section>
-<section class="chapter verify" id="verify" aria-labelledby="verify-title"><div class="scene">
-  <div class="copy"><h2 id="verify-title">Verify the <em>original.</em></h2><p>Read the value, unit, and lab flag against the screenshot. If a field is unreadable, leave it open for verification.</p><button class="line-action" id="report-layer" type="button" aria-pressed="false">Bring extraction forward <span aria-hidden="true">↗</span></button></div>
+<section class="chapter verify closing" id="verify" aria-labelledby="verify-title"><div class="scene">
+  <div class="copy"><h2 id="verify-title">Verify the <em>original.</em></h2><p>Compare the extracted reading and printed range with the report.</p></div>
   <figure class="report-stage" id="report-stage">
     <div class="report-depth">
-      <div class="report-shadow" aria-hidden="true"></div>
       <article class="report-paper">
         <header><b>Lab X</b><span>Original screenshot</span></header>
-        <h3>Serum chemistry</h3><p>Collected 19 Nov · Synthetic sample</p>
-        <dl><div><dt>Test</dt><dd>Potassium</dd></div><div class="report-mark"><dt>Result</dt><dd>6.1 mmol/L</dd></div><div><dt>Lab label</dt><dd>Critical</dd></div></dl>
-        <div class="report-barcode" aria-hidden="true"></div>
+        <img src="/nabz/demo-report.png" alt="Synthetic Lab X report showing the printed potassium result and range" loading="lazy">
       </article>
       <article class="readout">
-        <span>Extracted result</span><h3>Potassium</h3><strong>6.1 <small>mmol/L</small></strong><p>Awaiting clinician verification</p>
+        <span>Extracted result</span><h3>Potassium</h3><strong>6.8</strong><p>Printed range 3.5–5.1</p><p>Awaiting clinician verification</p>
       </article>
     </div>
-    <figcaption>The lab flag is copied from the original screenshot.</figcaption>
+    <figcaption>Synthetic sample. The image and extracted value refer to the same report.</figcaption>
   </figure>
+  <div class="feature-actions"><button class="line-action" id="report-layer" type="button" aria-pressed="false">Bring extraction forward</button><a class="feature-link" href="/nabz/clinic.html#review-queue">Review a report <span aria-hidden="true">↗</span></a></div>
 </div></section>
 
 <section class="chapter anatomy atlas-section" id="anatomy" aria-labelledby="atlas-title">
@@ -43,54 +54,63 @@
     <figure class="atlas-stage">
       <img class="atlas-poster" alt="Blender render of a glass anatomical figure" src="/nabz/anatomy-poster.jpg">
       <canvas id="atlas-canvas" tabindex="0" aria-label="Glass anatomy. Drag or use the left and right arrows to orbit. Tap a region to select."></canvas>
-      <aside class="atlas-card" id="atlas-region" hidden aria-live="polite"><h3 id="atlas-label"></h3><p id="atlas-description"></p></aside>
+      <aside class="atlas-card" id="atlas-region" hidden aria-live="polite"><small>Anatomy reference</small><h3 id="atlas-label"></h3><p id="atlas-description"></p></aside>
     </figure>
-    <div class="copy"><h2 id="atlas-title">The shape of a <em>human.</em></h2><p>Drag to rotate. Point to or tap a region to see what it does.</p><button type="button" id="atlas-layer" class="line-action" aria-pressed="false">Show bones</button></div>
+    <div class="copy"><h2 id="atlas-title">The shape of a <em>human.</em></h2><p>Drag to rotate. Point to or tap a region to see what it does.</p><div class="feature-actions"><button type="button" id="atlas-layer" class="line-action" aria-pressed="false">Show bones</button><a class="feature-link" href="/nabz/clinic.html#review-queue">Go to review queue <span aria-hidden="true">↗</span></a></div></div>
   </div>
 </section>
 <section class="chapter patient-feature" id="patients" aria-labelledby="patients-title">
   <div class="scene deck-scene">
-    <div class="copy deck-left"><h2 id="patients-title">Every report has a person</h2><p>Move through the inbox to see why each case needs a different next step.</p></div>
+    <div class="copy deck-left"><h2 id="patients-title">Every report has a person</h2><p>Swipe through six fictional cases from the team’s synthetic report set.</p><a class="feature-link" href="/nabz/clinic.html#review-queue">Open the review queue <span aria-hidden="true">↗</span></a></div>
     <div class="deck-stage" id="patient-roll" tabindex="0" aria-label="Six fictional patient cards. Drag, swipe, or use left and right arrow keys.">
       <div id="patient-deck" class="patient-deck"></div>
       <div class="deck-instruction"><span>Drag or swipe</span><span id="roll-count" aria-live="polite">1 / 6</span></div>
     </div>
-    <div class="deck-right"><div class="case-status" id="deck-status"></div><h3 id="deck-title"></h3><p id="deck-action"></p></div>
+    <div class="deck-right"><div class="case-status" id="deck-status"></div><h3 id="deck-title"></h3><p id="deck-action"></p><p id="deck-reading" class="deck-reading"></p></div>
   </div>
 </section>
 <section class="chapter history closing" id="history" aria-labelledby="history-title"><div class="scene">
-  <div class="copy"><h2 id="history-title">See what <em>changed.</em></h2><p>Compare confirmed results for the same patient, test, and unit. Select a date to inspect its reading.</p></div>
+  <div class="copy"><h2 id="history-title">See what <em>changed.</em></h2><p>Choose a patient and compare values for the same test and unit. Unconfirmed readings are marked.</p></div>
   <figure class="history-plot">
-    <div class="plot-label"><span>Potassium · mmol/L</span><span>Synthetic results</span></div>
-    <div class="plot-bars" aria-label="Potassium history">
-      <button type="button" class="plot-column" data-reading="0" aria-pressed="false" style="--bar-height:57%"><span class="bar-frame"><span class="bar-body"><strong>4.3</strong></span></span><span>12 Nov</span></button>
-      <button type="button" class="plot-column" data-reading="1" aria-pressed="true" style="--bar-height:81%"><span class="bar-frame"><span class="bar-body"><strong>6.1</strong></span></span><span>19 Nov</span></button>
+    <div class="chart-controls">
+      <label>Patient<select id="trend-patient" disabled><option value="">Select patient</option></select></label>
+      <label>Test<select id="trend-test" disabled><option value="">Select test</option></select></label>
+      <button id="trend-refresh" type="button" class="line-action">Refresh</button>
     </div>
-    <figcaption id="reading-detail" aria-live="polite">19 Nov · 6.1 mmol/L · Lab X repeat report</figcaption>
+    <label class="chart-filter"><input type="checkbox" id="trend-confirmed"> Confirmed only</label>
+    <div class="plot-bars" id="trend-bars" aria-label="Patient test history" hidden></div>
+    <figcaption id="reading-detail" role="status">Loading patient list…</figcaption>
   </figure>
+  <a class="feature-link" id="history-link" href="/nabz/clinic.html#patient-history">Open patient history <span aria-hidden="true">↗</span></a>
 </div></section>
 <section class="chapter follow closing" id="followup" aria-labelledby="follow-title"><div class="scene">
-  <div class="copy"><h2 id="follow-title">Close the <em>loop.</em></h2><p>See who received the report, who reviewed it, and who owns the next step.</p></div>
-  <div class="review-flow">
-    <ol aria-label="Sample handoff">
-      <li><button type="button" aria-pressed="true" data-review-step="0"><span>12:44</span><b>Received</b></button></li>
-      <li><button type="button" aria-pressed="false" data-review-step="1"><span>12:49</span><b>Acknowledged</b></button></li>
-      <li><button type="button" aria-pressed="false" data-review-step="2"><span>12:53</span><b>Follow-up</b></button></li>
-    </ol>
-    <p id="review-detail" aria-live="polite">Asha’s screenshot entered the review queue with the original attached.</p>
+  <div class="copy"><h2 id="follow-title">Close the <em>loop.</em></h2><p>Track which reports have reached the clinic and which readings still need a clinician.</p></div>
+  <div class="review-flow handoff-stack">
+    <div class="handoff-stages" aria-label="Review stages">
+      <button type="button" aria-pressed="true" data-review-step="0">Received</button>
+      <button type="button" aria-pressed="false" data-review-step="1">Awaiting review</button>
+      <button type="button" aria-pressed="false" data-review-step="2">Confirmed</button>
+    </div>
+    <div class="handoff-panel">
+      <span id="handoff-source" class="handoff-source">Clinic inbox</span>
+      <strong id="handoff-count">—</strong>
+      <p id="review-detail" role="status">Reports in the clinic queue.</p>
+    </div>
   </div>
-  <a class="slab" href="/nabz/clinic.html">Open the clinic inbox <span aria-hidden="true">↗</span></a>
+  <a class="feature-link" href="/nabz/clinic.html?review=pending#review-queue">Open pending reviews <span aria-hidden="true">↗</span></a>
 </div></section>
 <section class="chapter research closing" id="research" aria-labelledby="research-title"><div class="scene">
   <div class="copy"><h2 id="research-title">Why <em>follow-up</em> matters.</h2></div>
   <div class="research-statement"><strong>6.8–62%</strong><p>Lab tests without documented follow-up across studies in a 2012 ambulatory-care review.</p><small>The review included 19 studies across test types. The range is historical and does not estimate rates in Bengaluru.</small></div>
-  <div class="source-index">
-    <details open name="source-group"><summary>Published evidence</summary><div><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3445672/" target="_blank" rel="noopener">Callen et al. · Test result follow-up ↗</a><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4745612/" target="_blank" rel="noopener">Consensus guidance · High-risk lab results ↗</a><a href="https://academic.oup.com/clinchem/article/70/10/1220/7750927" target="_blank" rel="noopener">Clinical Chemistry · Critical results ↗</a></div></details>
-    <details name="source-group"><summary>Existing workflow</summary><div><a href="https://www.eka.care/services/eka-smart-report" target="_blank" rel="noopener">Eka Care · Report digitization and history ↗</a></div></details>
-    <details name="source-group"><summary>Interaction and artwork credits</summary><div><a href="https://github.com/Charleeh/ecorche" target="_blank" rel="noopener">Écorché · Based on Z-Anatomy and BodyParts3D ↗</a><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">Adapted anatomy under CC BY-SA 4.0 ↗</a><a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/11-chapter-review" target="_blank" rel="noopener">OpenStax · Anatomy descriptions ↗</a><a href="https://bencho.dev/" target="_blank" rel="noopener">Bencho · 3D Bar Chart, Progress Tracker, Pill Accordion patterns ↗</a><a href="https://landonorris.com/" target="_blank" rel="noopener">Lando Norris · Cutout motion and opening type reference ↗</a><a href="https://github.com/heydamir/unslop" target="_blank" rel="noopener">Unslop · Interface critique guidance ↗</a><a href="/nabz/anatomy-attribution.txt">Anatomy asset attribution ↗</a></div></details>
+  <div class="source-index evidence-stack">
+    <details open name="source-group"><summary><b>Published evidence</b><small>Systematic review and guidance</small></summary><div><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3445672/" target="_blank" rel="noopener">Callen et al. · Test result follow-up ↗</a><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4745612/" target="_blank" rel="noopener">Consensus guidance · High-risk lab results ↗</a><a href="https://academic.oup.com/clinchem/article/70/10/1220/7750927" target="_blank" rel="noopener">Clinical Chemistry · Critical results ↗</a></div></details>
+    <details name="source-group"><summary><b>Existing workflow</b><small>Report digitization and history</small></summary><div><a href="https://www.eka.care/services/eka-smart-report" target="_blank" rel="noopener">Eka Care · Report digitization and history ↗</a></div></details>
+    <details name="source-group"><summary><b>Interaction and artwork credits</b><small>Design and anatomy sources</small></summary><div><a href="https://github.com/Charleeh/ecorche" target="_blank" rel="noopener">Écorché · Based on Z-Anatomy and BodyParts3D ↗</a><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">Adapted anatomy under CC BY-SA 4.0 ↗</a><a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/11-chapter-review" target="_blank" rel="noopener">OpenStax · Anatomy descriptions ↗</a><a href="https://bencho.dev/" target="_blank" rel="noopener">Bencho · Progress Tracker and FAQ Frames patterns ↗</a><a href="https://libraries.dev/#components" target="_blank" rel="noopener">Libraries.dev · Border Beam interaction reference ↗</a><a href="https://landonorris.com/" target="_blank" rel="noopener">Lando Norris · Cutout motion and opening type reference ↗</a><a href="https://github.com/heydamir/unslop" target="_blank" rel="noopener">Unslop · Interface critique guidance ↗</a><a href="/nabz/anatomy-attribution.txt">Anatomy asset attribution ↗</a></div></details>
   </div>
+  <a class="feature-link" href="/nabz/clinic.html#comparison">Compare queue order <span aria-hidden="true">↗</span></a>
 </div></section>
 </main>
 <footer class="footer"><span>NABZ · Illustrations use synthetic cases</span><a href="#top">Back to top ↑</a></footer>
 
-<script src="/nabz/landing.js" defer></script></body></html>
+<script src="/nabz/landing.js" defer></script>
+<script src="/nabz/live-preview.js" defer></script></body></html>
