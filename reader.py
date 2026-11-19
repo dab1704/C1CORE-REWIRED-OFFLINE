@@ -9,7 +9,7 @@ from google.genai import types
 
 load_dotenv()
 
-MODEL = "gemini-3.8-flash"
+MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 print(f"Using Gemini model: {MODEL}")
 
 PROMPT = """You read a medical lab report image. Reply with JSON only, no prose:
@@ -50,14 +50,17 @@ def clean(data):
 
 def read_image(image_bytes, mime="image/png"):
     """Ask Gemini to read the image. Raises on any failure (caller handles)."""
-    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"),
+                          http_options=types.HttpOptions(timeout=30000))  # 30 s, in ms
     last = None
     for attempt in range(2):  # one retry for a temporary error
         try:
             resp = client.models.generate_content(
                 model=MODEL,
                 contents=[types.Part.from_bytes(data=image_bytes, mime_type=mime), PROMPT],
-                config=types.GenerateContentConfig(response_mime_type="application/json"))
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    thinking_config=types.ThinkingConfig(thinking_level="LOW")))  # faster
             return clean(json.loads(resp.text))
         except Exception as e:
             last = e

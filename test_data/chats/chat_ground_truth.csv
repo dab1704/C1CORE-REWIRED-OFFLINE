@@ -1,0 +1,6 @@
+chat_file,attached_report,expected_tier,symptom_text
+chat_c1.png,report_10_A.png,URGENT,"['good morning sir', 'sir chest pain since morning']"
+chat_c2.png,report_20_B.png,ROUTINE,"['sir sugar tablets over, can i come tomorrow?']"
+chat_c3.png,report_05_B.png,URGENT,['sir feeling very weak and dizzy']
+chat_c4.png,report_04_A.png,URGENT,"['sir legs cramping since 2 days, report attached']"
+chat_c5.png,report_16_A.png,ROUTINE,"['good evening doctor', 'bp was 130/80 today']"
