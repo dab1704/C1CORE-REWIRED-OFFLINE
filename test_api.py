@@ -3,6 +3,7 @@ import csv
 import os
 import tempfile
 import unittest
+import unittest.mock
 
 import app
 import db
@@ -82,10 +83,10 @@ class ApiTest(unittest.TestCase):
                          [urgent["id"], unread["id"], watch["id"], routine["id"]])
         self.assertEqual(inbox[1]["level"], "unread")
 
-    def test_reset_clears_data_keeps_settings(self):
+    def test_clear_data_clears_everything_keeps_settings(self):
         self.upload("report_10_A.png")  # creates a new patient and an uploaded file
         self.assertTrue(os.listdir(app.UPLOAD_DIR))
-        self.assertEqual(self.client.post("/api/reset").get_json(), {"ok": True})
+        app.clear_data()
         self.assertEqual(self.client.get("/api/inbox").get_json(), [])
         self.assertEqual(os.listdir(app.UPLOAD_DIR), [])
         self.assertEqual(len(self.client.get("/api/patients").get_json()), len(db.PATIENTS))
@@ -121,6 +122,53 @@ class ApiTest(unittest.TestCase):
         self.assertEqual((a, name), (b, "Deepa Rao"))
         self.assertNotEqual(a, c)
         self.assertEqual(seeded, 1)  # matched the seeded "Asha Verma", no duplicate
+
+    def test_reset_restores_the_25_demo_reports(self):
+        self.upload("report_10_A.png")  # some other data that reset must replace
+        self.assertEqual(self.client.post("/api/reset").get_json(), {"ok": True})
+        inbox = self.client.get("/api/inbox").get_json()
+        self.assertEqual(len(inbox), 25)
+        self.assertEqual(len(os.listdir(app.UPLOAD_DIR)), 25)
+        self.assertTrue(all(i["status"] == "pending" for i in inbox))
+        with db.get_db() as conn:  # settings survive
+            self.assertEqual(conn.execute("SELECT COUNT(*) FROM settings").fetchone()[0],
+                             len(db.SETTINGS))
+        # a restored report still has its image
+        res = self.client.get(inbox[0]["image_url"])
+        self.assertEqual(res.status_code, 200)
+        res.close()
+
+    def test_reset_needs_admin_token_when_set(self):
+        self.upload("report_10_A.png")
+        with unittest.mock.patch.dict(os.environ, {"ADMIN_TOKEN": "s3cret"}):
+            self.assertEqual(self.client.post("/api/reset").status_code, 403)
+            bad = self.client.post("/api/reset", headers={"X-Admin-Token": "nope"})
+            self.assertEqual(bad.status_code, 403)
+            self.assertEqual(len(self.client.get("/api/inbox").get_json()), 1)  # untouched
+            ok = self.client.post("/api/reset", headers={"X-Admin-Token": "s3cret"})
+            self.assertEqual(ok.status_code, 200)
+        self.assertEqual(len(self.client.get("/api/inbox").get_json()), 25)
+
+    def test_report_image_route(self):
+        rep = self.upload("report_10_A.png")
+        res = self.client.get(f"/api/reports/{rep['id']}/image")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.mimetype, "image/png")
+        with open(REPORTS + "report_10_A.png", "rb") as f:
+            self.assertEqual(res.data, f.read())  # the original, byte for byte
+        res.close()
+        # image_url is on every inbox item and every patient-history report
+        url = f"/api/reports/{rep['id']}/image"
+        self.assertEqual(self.client.get("/api/inbox").get_json()[0]["image_url"], url)
+        detail = self.client.get(f"/api/patients/{rep['patient_id']}").get_json()
+        self.assertEqual(detail["reports"][0]["image_url"], url)
+
+    def test_report_image_404s(self):
+        self.assertEqual(self.client.get("/api/reports/999/image").status_code, 404)
+        rep = self.upload("report_10_A.png")
+        for name in os.listdir(app.UPLOAD_DIR):  # file gone, row still there
+            os.remove(os.path.join(app.UPLOAD_DIR, name))
+        self.assertEqual(self.client.get(f"/api/reports/{rep['id']}/image").status_code, 404)
 
     def test_demo_seed_round_trip(self):
         tmp = tempfile.mkdtemp()

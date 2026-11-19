@@ -107,6 +107,66 @@
    "name": "Fatima Begum",
    "age": 55,
    "sex": "F"
+  },
+  {
+   "id": 45,
+   "name": "Harish Naik",
+   "age": 61,
+   "sex": "M"
+  },
+  {
+   "id": 46,
+   "name": "Meera Iyer",
+   "age": 36,
+   "sex": "F"
+  },
+  {
+   "id": 47,
+   "name": "Mohammed Irfan",
+   "age": 49,
+   "sex": "M"
+  },
+  {
+   "id": 48,
+   "name": "Padma Hegde",
+   "age": 60,
+   "sex": "F"
+  },
+  {
+   "id": 49,
+   "name": "Sunita Joshi",
+   "age": 47,
+   "sex": "F"
+  },
+  {
+   "id": 50,
+   "name": "Arjun Nair",
+   "age": 41,
+   "sex": "M"
+  },
+  {
+   "id": 51,
+   "name": "Venkatesh Murthy",
+   "age": 63,
+   "sex": "M"
+  },
+  {
+   "id": 52,
+   "name": "Suresh Kumar",
+   "age": 45,
+   "sex": "M"
+  },
+  {
+   "id": 53,
+   "name": "Pooja Bhat",
+   "age": 31,
+   "sex": "F"
+  },
+  {
+   "id": 54,
+   "name": "Revathi Kumar",
+   "age": 44,
+   "sex": "F"
   }
  ],
  "reports": [
@@ -263,6 +323,127 @@
    "status": "pending",
    "level": "urgent",
    "report_date": "2026-11-18"
+  },
+  {
+   "id": 52,
+   "patient_id": 45,
+   "received_at": "2026-11-19T09:00:07.744333+00:00",
+   "source": "demo",
+   "message_id": "report_15_C.png",
+   "image_path": "4cba62ed5acb476ab839195450a59a73.png",
+   "status": "pending",
+   "level": "urgent",
+   "report_date": "2026-11-17"
+  },
+  {
+   "id": 53,
+   "patient_id": 46,
+   "received_at": "2026-11-19T09:00:13.154336+00:00",
+   "source": "demo",
+   "message_id": "report_16_A.png",
+   "image_path": "48a45ffd92f0462291c6f00065b6b0a0.png",
+   "status": "pending",
+   "level": "routine",
+   "report_date": "2026-11-15"
+  },
+  {
+   "id": 54,
+   "patient_id": 47,
+   "received_at": "2026-11-19T09:00:18.124959+00:00",
+   "source": "demo",
+   "message_id": "report_17_B.png",
+   "image_path": "0f6301a2529c4d0fa8711fe6e9350a2f.png",
+   "status": "pending",
+   "level": "urgent",
+   "report_date": "2026-11-17"
+  },
+  {
+   "id": 55,
+   "patient_id": 48,
+   "received_at": "2026-11-19T09:00:23.437632+00:00",
+   "source": "demo",
+   "message_id": "report_18_C.png",
+   "image_path": "4130d08138114bc58a7ec61043c2b9af.png",
+   "status": "pending",
+   "level": "watch",
+   "report_date": "2026-11-17"
+  },
+  {
+   "id": 56,
+   "patient_id": 49,
+   "received_at": "2026-11-19T09:00:30.847628+00:00",
+   "source": "demo",
+   "message_id": "report_19_A.png",
+   "image_path": "755a01498f094515bd3b76b462c0da80.png",
+   "status": "pending",
+   "level": "routine",
+   "report_date": "2026-11-15"
+  },
+  {
+   "id": 57,
+   "patient_id": 50,
+   "received_at": "2026-11-19T09:00:36.067247+00:00",
+   "source": "demo",
+   "message_id": "report_20_B.png",
+   "image_path": "92d749342e9f47b681bbc66f712629a7.png",
+   "status": "pending",
+   "level": "routine",
+   "report_date": "2026-11-17"
+  },
+  {
+   "id": 58,
+   "patient_id": 51,
+   "received_at": "2026-11-19T09:00:42.090274+00:00",
+   "source": "demo",
+   "message_id": "report_21_C.png",
+   "image_path": "62fbb8bd0c864b60bfa7c98ae16fab04.png",
+   "status": "pending",
+   "level": "routine",
+   "report_date": "2026-11-17"
+  },
+  {
+   "id": 59,
+   "patient_id": 52,
+   "received_at": "2026-11-19T09:00:47.331001+00:00",
+   "source": "demo",
+   "message_id": "report_22_A.png",
+   "image_path": "da089d52bfda4894ba70921732c0d599.png",
+   "status": "pending",
+   "level": "watch",
+   "report_date": "2026-11-17"
+  },
+  {
+   "id": 60,
+   "patient_id": 53,
+   "received_at": "2026-11-19T09:00:52.267452+00:00",
+   "source": "demo",
+   "message_id": "report_23_B.png",
+   "image_path": "0c3c88ceacd344d0bbac7425dda8f955.png",
+   "status": "pending",
+   "level": "routine",
+   "report_date": "2026-11-16"
+  },
+  {
+   "id": 61,
+   "patient_id": 54,
+   "received_at": "2026-11-19T09:00:58.306024+00:00",
+   "source": "demo",
+   "message_id": "report_24_C.png",
+   "image_path": "3216a8ab6e1746bd8a9526e751f8d560.png",
+   "status": "pending",
+   "level": "routine",
+   "report_date": "2026-11-18"
+  },
+  {
+   "id": 62,
+   "patient_id": 32,
+   "received_at": "2026-11-19T09:01:04.530260+00:00",
+   "source": "demo",
+   "message_id": "report_25_A.png",
+   "image_path": "a813b0f4255c4f77a532f0da60c1b4df.png",
+   "status": "pending",
+   "level": "watch",
+   "report_date": "2026-11-14"
   }
  ],
  "test_results": [
@@ -755,6 +936,486 @@
    "range_low": 3.5,
    "range_high": 5.2,
    "level": "watch"
+  },
+  {
+   "id": 161,
+   "report_id": 52,
+   "name": "Urea",
+   "value": 118.0,
+   "unit": "mg/dL",
+   "range_low": 15.0,
+   "range_high": 40.0,
+   "level": "watch"
+  },
+  {
+   "id": 162,
+   "report_id": 52,
+   "name": "Creatinine",
+   "value": 4.2,
+   "unit": "mg/dL",
+   "range_low": 0.7,
+   "range_high": 1.3,
+   "level": "urgent"
+  },
+  {
+   "id": 163,
+   "report_id": 52,
+   "name": "Potassium",
+   "value": 5.2,
+   "unit": "mmol/L",
+   "range_low": 3.5,
+   "range_high": 5.1,
+   "level": "watch"
+  },
+  {
+   "id": 164,
+   "report_id": 52,
+   "name": "Sodium",
+   "value": 136.0,
+   "unit": "mmol/L",
+   "range_low": 135.0,
+   "range_high": 145.0,
+   "level": "routine"
+  },
+  {
+   "id": 165,
+   "report_id": 53,
+   "name": "Haemoglobin",
+   "value": 13.4,
+   "unit": "g/dL",
+   "range_low": 12.0,
+   "range_high": 15.0,
+   "level": "routine"
+  },
+  {
+   "id": 166,
+   "report_id": 53,
+   "name": "WBC",
+   "value": 6.0,
+   "unit": "10^3/uL",
+   "range_low": 4.0,
+   "range_high": 11.0,
+   "level": "routine"
+  },
+  {
+   "id": 167,
+   "report_id": 53,
+   "name": "Platelets",
+   "value": 227.0,
+   "unit": "10^3/uL",
+   "range_low": 150.0,
+   "range_high": 410.0,
+   "level": "routine"
+  },
+  {
+   "id": 168,
+   "report_id": 54,
+   "name": "Glucose (Fasting)",
+   "value": 410.0,
+   "unit": "mg/dL",
+   "range_low": 70.0,
+   "range_high": 99.0,
+   "level": "urgent"
+  },
+  {
+   "id": 169,
+   "report_id": 54,
+   "name": "HbA1c",
+   "value": 11.2,
+   "unit": "%",
+   "range_low": 4.0,
+   "range_high": 5.6,
+   "level": "watch"
+  },
+  {
+   "id": 170,
+   "report_id": 54,
+   "name": "Creatinine",
+   "value": 1.2,
+   "unit": "mg/dL",
+   "range_low": 0.7,
+   "range_high": 1.3,
+   "level": "routine"
+  },
+  {
+   "id": 171,
+   "report_id": 55,
+   "name": "TSH",
+   "value": 6.8,
+   "unit": "uIU/mL",
+   "range_low": 0.4,
+   "range_high": 4.0,
+   "level": "watch"
+  },
+  {
+   "id": 172,
+   "report_id": 56,
+   "name": "Glucose (Fasting)",
+   "value": 86.0,
+   "unit": "mg/dL",
+   "range_low": 70.0,
+   "range_high": 99.0,
+   "level": "routine"
+  },
+  {
+   "id": 173,
+   "report_id": 56,
+   "name": "Urea",
+   "value": 26.0,
+   "unit": "mg/dL",
+   "range_low": 15.0,
+   "range_high": 40.0,
+   "level": "routine"
+  },
+  {
+   "id": 174,
+   "report_id": 56,
+   "name": "Creatinine",
+   "value": 1.1,
+   "unit": "mg/dL",
+   "range_low": 0.7,
+   "range_high": 1.3,
+   "level": "routine"
+  },
+  {
+   "id": 175,
+   "report_id": 56,
+   "name": "Sodium",
+   "value": 138.0,
+   "unit": "mmol/L",
+   "range_low": 135.0,
+   "range_high": 145.0,
+   "level": "routine"
+  },
+  {
+   "id": 176,
+   "report_id": 56,
+   "name": "Potassium",
+   "value": 4.6,
+   "unit": "mmol/L",
+   "range_low": 3.5,
+   "range_high": 5.1,
+   "level": "routine"
+  },
+  {
+   "id": 177,
+   "report_id": 57,
+   "name": "Haemoglobin",
+   "value": 15.9,
+   "unit": "g/dL",
+   "range_low": 13.0,
+   "range_high": 17.0,
+   "level": "routine"
+  },
+  {
+   "id": 178,
+   "report_id": 57,
+   "name": "WBC",
+   "value": 7.1,
+   "unit": "10^3/uL",
+   "range_low": 4.0,
+   "range_high": 11.0,
+   "level": "routine"
+  },
+  {
+   "id": 179,
+   "report_id": 57,
+   "name": "Platelets",
+   "value": 221.0,
+   "unit": "10^3/uL",
+   "range_low": 150.0,
+   "range_high": 410.0,
+   "level": "routine"
+  },
+  {
+   "id": 180,
+   "report_id": 57,
+   "name": "Glucose (Fasting)",
+   "value": 89.0,
+   "unit": "mg/dL",
+   "range_low": 70.0,
+   "range_high": 99.0,
+   "level": "routine"
+  },
+  {
+   "id": 181,
+   "report_id": 57,
+   "name": "Urea",
+   "value": 22.0,
+   "unit": "mg/dL",
+   "range_low": 15.0,
+   "range_high": 40.0,
+   "level": "routine"
+  },
+  {
+   "id": 182,
+   "report_id": 57,
+   "name": "Creatinine",
+   "value": 1.0,
+   "unit": "mg/dL",
+   "range_low": 0.7,
+   "range_high": 1.3,
+   "level": "routine"
+  },
+  {
+   "id": 183,
+   "report_id": 57,
+   "name": "Sodium",
+   "value": 142.0,
+   "unit": "mmol/L",
+   "range_low": 135.0,
+   "range_high": 145.0,
+   "level": "routine"
+  },
+  {
+   "id": 184,
+   "report_id": 57,
+   "name": "Potassium",
+   "value": 4.1,
+   "unit": "mmol/L",
+   "range_low": 3.5,
+   "range_high": 5.1,
+   "level": "routine"
+  },
+  {
+   "id": 185,
+   "report_id": 58,
+   "name": "Haemoglobin",
+   "value": 14.8,
+   "unit": "g/dL",
+   "range_low": 13.0,
+   "range_high": 17.0,
+   "level": "routine"
+  },
+  {
+   "id": 186,
+   "report_id": 58,
+   "name": "WBC",
+   "value": 7.6,
+   "unit": "10^3/uL",
+   "range_low": 4.0,
+   "range_high": 11.0,
+   "level": "routine"
+  },
+  {
+   "id": 187,
+   "report_id": 58,
+   "name": "Platelets",
+   "value": 289.0,
+   "unit": "10^3/uL",
+   "range_low": 150.0,
+   "range_high": 410.0,
+   "level": "routine"
+  },
+  {
+   "id": 188,
+   "report_id": 58,
+   "name": "Total Cholesterol",
+   "value": 162.0,
+   "unit": "mg/dL",
+   "range_low": null,
+   "range_high": 200.0,
+   "level": "routine"
+  },
+  {
+   "id": 189,
+   "report_id": 58,
+   "name": "LDL",
+   "value": 84.0,
+   "unit": "mg/dL",
+   "range_low": null,
+   "range_high": 100.0,
+   "level": "routine"
+  },
+  {
+   "id": 190,
+   "report_id": 58,
+   "name": "HDL",
+   "value": 46.0,
+   "unit": "mg/dL",
+   "range_low": 40.0,
+   "range_high": null,
+   "level": "routine"
+  },
+  {
+   "id": 191,
+   "report_id": 59,
+   "name": "Sodium",
+   "value": 140.0,
+   "unit": "mmol/L",
+   "range_low": 135.0,
+   "range_high": 145.0,
+   "level": "routine"
+  },
+  {
+   "id": 192,
+   "report_id": 59,
+   "name": "Potassium",
+   "value": 5.4,
+   "unit": "mmol/L",
+   "range_low": 3.5,
+   "range_high": 5.1,
+   "level": "watch"
+  },
+  {
+   "id": 193,
+   "report_id": 59,
+   "name": "Creatinine",
+   "value": 1.3,
+   "unit": "mg/dL",
+   "range_low": 0.7,
+   "range_high": 1.3,
+   "level": "routine"
+  },
+  {
+   "id": 194,
+   "report_id": 60,
+   "name": "Haemoglobin",
+   "value": 13.9,
+   "unit": "g/dL",
+   "range_low": 12.0,
+   "range_high": 15.0,
+   "level": "routine"
+  },
+  {
+   "id": 195,
+   "report_id": 60,
+   "name": "WBC",
+   "value": 8.2,
+   "unit": "10^3/uL",
+   "range_low": 4.0,
+   "range_high": 11.0,
+   "level": "routine"
+  },
+  {
+   "id": 196,
+   "report_id": 60,
+   "name": "Platelets",
+   "value": 247.0,
+   "unit": "10^3/uL",
+   "range_low": 150.0,
+   "range_high": 410.0,
+   "level": "routine"
+  },
+  {
+   "id": 197,
+   "report_id": 60,
+   "name": "TSH",
+   "value": 2.3,
+   "unit": "uIU/mL",
+   "range_low": 0.4,
+   "range_high": 4.0,
+   "level": "routine"
+  },
+  {
+   "id": 198,
+   "report_id": 61,
+   "name": "Haemoglobin",
+   "value": 13.0,
+   "unit": "g/dL",
+   "range_low": 12.0,
+   "range_high": 15.0,
+   "level": "routine"
+  },
+  {
+   "id": 199,
+   "report_id": 61,
+   "name": "WBC",
+   "value": 6.9,
+   "unit": "10^3/uL",
+   "range_low": 4.0,
+   "range_high": 11.0,
+   "level": "routine"
+  },
+  {
+   "id": 200,
+   "report_id": 61,
+   "name": "Platelets",
+   "value": 336.0,
+   "unit": "10^3/uL",
+   "range_low": 150.0,
+   "range_high": 410.0,
+   "level": "routine"
+  },
+  {
+   "id": 201,
+   "report_id": 61,
+   "name": "Glucose (Fasting)",
+   "value": 83.0,
+   "unit": "mg/dL",
+   "range_low": 70.0,
+   "range_high": 99.0,
+   "level": "routine"
+  },
+  {
+   "id": 202,
+   "report_id": 61,
+   "name": "Urea",
+   "value": 33.0,
+   "unit": "mg/dL",
+   "range_low": 15.0,
+   "range_high": 40.0,
+   "level": "routine"
+  },
+  {
+   "id": 203,
+   "report_id": 61,
+   "name": "Creatinine",
+   "value": 0.9,
+   "unit": "mg/dL",
+   "range_low": 0.7,
+   "range_high": 1.3,
+   "level": "routine"
+  },
+  {
+   "id": 204,
+   "report_id": 61,
+   "name": "Sodium",
+   "value": 140.0,
+   "unit": "mmol/L",
+   "range_low": 135.0,
+   "range_high": 145.0,
+   "level": "routine"
+  },
+  {
+   "id": 205,
+   "report_id": 61,
+   "name": "Potassium",
+   "value": 4.5,
+   "unit": "mmol/L",
+   "range_low": 3.5,
+   "range_high": 5.1,
+   "level": "routine"
+  },
+  {
+   "id": 206,
+   "report_id": 62,
+   "name": "Glucose (Fasting)",
+   "value": 190.0,
+   "unit": "mg/dL",
+   "range_low": 70.0,
+   "range_high": 99.0,
+   "level": "watch"
+  },
+  {
+   "id": 207,
+   "report_id": 62,
+   "name": "HbA1c",
+   "value": 8.1,
+   "unit": "%",
+   "range_low": 4.0,
+   "range_high": 5.6,
+   "level": "watch"
+  },
+  {
+   "id": 208,
+   "report_id": 62,
+   "name": "Creatinine",
+   "value": 0.9,
+   "unit": "mg/dL",
+   "range_low": 0.7,
+   "range_high": 1.3,
+   "level": "routine"
   }
  ],
  "messages": [],

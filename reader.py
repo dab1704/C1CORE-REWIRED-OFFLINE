@@ -9,7 +9,7 @@ from google.genai import types
 
 load_dotenv()
 
-MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
 print(f"Using Gemini model: {MODEL}")
 
 # Dev-only: READER_MODE=fake in .env reads test_data/fake_readings.json, no API call

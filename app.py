@@ -1,3 +1,4 @@
+import hmac
 import io
 import math
 import os
@@ -5,7 +6,7 @@ import uuid
 from datetime import date, datetime, timezone
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from PIL import Image
 
 import db
@@ -182,7 +183,8 @@ def inbox_items():
             " r.status, r.source, r.received_at,"
             " (SELECT text FROM messages m WHERE m.report_id = r.id LIMIT 1) AS caption"
             " FROM reports r LEFT JOIN patients p ON p.id = r.patient_id").fetchall()
-        items = [dict(r, worst=rules.assess(report_tests(conn, r["id"]))["worst"])
+        items = [dict(r, worst=rules.assess(report_tests(conn, r["id"]))["worst"],
+                      image_url=f"/api/reports/{r['id']}/image")
                  for r in rows]
     for i in items:
         if i["status"] == "needs_verification" and i["level"] != "urgent":
@@ -223,6 +225,18 @@ def compare():
         "urgent_in_first_10_nabz": sum(p <= 10 for p in b),
         "last_urgent_pos_arrival": a[-1] if a else None,
         "last_urgent_pos_nabz": b[-1] if b else None})
+
+
+@app.get("/api/reports/<int:rid>/image")
+def report_image(rid):
+    # The original uploaded image of one report
+    with db.get_db() as conn:
+        row = conn.execute("SELECT image_path FROM reports WHERE id = ?", (rid,)).fetchone()
+    name = demo_seed.file_name(row["image_path"]) if row else ""  # file name only
+    path = os.path.join(UPLOAD_DIR, name)
+    if not name or not os.path.isfile(path):
+        return error("Image not found.", 404)
+    return send_file(os.path.abspath(path))
 
 
 def valid_fixes(fixes, test_ids):
@@ -275,7 +289,8 @@ def patient_detail(pid):
         reports = []
         for r in conn.execute("SELECT id, report_date, received_at, level, status FROM reports"
                               " WHERE patient_id = ? ORDER BY report_date, id", (pid,)).fetchall():
-            reports.append(dict(r, tests=report_tests(conn, r["id"])))
+            reports.append(dict(r, tests=report_tests(conn, r["id"]),
+                                image_url=f"/api/reports/{r['id']}/image"))
         history = db.patient_history(conn, pid)
     trend = {}
     for h in sorted(history, key=lambda h: h["date"]):
@@ -302,7 +317,16 @@ def clear_data():
 
 @app.post("/api/reset")
 def reset():
+    # Back to the demo: clear everything, then reload the seed (same loader as startup)
+    token = os.getenv("ADMIN_TOKEN")  # if set, the caller must send it
+    sent = request.headers.get("X-Admin-Token", "")
+    if token and not hmac.compare_digest(sent.encode(), token.encode()):
+        return error("Forbidden.", 403)
     clear_data()
+    try:
+        demo_seed.load_seed_if_empty(UPLOAD_DIR)
+    except Exception:
+        return error("Data cleared, but the demo seed could not be loaded.", 500)
     return jsonify({"ok": True})
 
 

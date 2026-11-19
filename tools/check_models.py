@@ -1,12 +1,16 @@
 """Times reader.read_image on one report with several Gemini models (no retry)."""
+import os
 import sys
 import time
 
-import reader
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+sys.path.insert(0, ROOT)  # this file lives in tools/, reader.py is in the project root
+
+import reader  # noqa: E402
 
 MODELS = ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash",
           "gemini-3.7-flash", "gemini-3.8-flash"]
-IMAGE = "test_data/reports/report_10_A.png"
+IMAGE = os.path.join(ROOT, "test_data", "reports", "report_10_A.png")
 
 
 def no_retry(_seconds):
