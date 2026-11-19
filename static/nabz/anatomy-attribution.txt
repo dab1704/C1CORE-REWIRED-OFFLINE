@@ -1,0 +1,8 @@
+Nabz glass anatomy preview — asset attribution
+Geometry derived from Écorché by Charleeh (https://github.com/Charleeh/ecorche).
+Écorché adapts Z-Anatomy by Gauthier Kervyn and contributors (https://www.z-anatomy.com/) and BodyParts3D (© The Database Center for Life Science; https://dbarchive.biosciencedbc.jp/).
+Upstream attribution and licenses: https://github.com/Charleeh/ecorche/blob/main/ATTRIBUTION.md
+Adaptations for Nabz: glass materials, lighting and staging, region grouping, and browser vertex packing.
+The adapted anatomy geometry and scene are distributed under CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/.
+The reference anatomy is educational and synthetic and does not represent any patient.
+The patient-card portraits were generated with ImageGen and converted into ASCII. All cases are fictional.
