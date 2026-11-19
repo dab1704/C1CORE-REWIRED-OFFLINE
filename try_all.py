@@ -3,16 +3,32 @@ Uses a throwaway database and upload folder. Ground truth is read only here."""
 import csv
 import os
 import tempfile
+import time
 
 import app
 import db
+import reader
 from test_rules import parse_values
 
 REPORTS = "test_data/reports"
 TRUTH = "test_data/ground_truth.csv"
 
 
+def retry_on_overload(real_read):
+    # Wrap the reader: one extra try after a 503/504 from Gemini
+    def read(*args):
+        try:
+            return real_read(*args)
+        except Exception as e:
+            if getattr(e, "code", None) not in (503, 504):
+                raise
+            time.sleep(3)
+            return real_read(*args)
+    return read
+
+
 def main():
+    reader.read_image = retry_on_overload(reader.read_image)
     # Throwaway database and uploads, so nabz.db stays clean
     tmp = tempfile.mkdtemp()
     db.DB_PATH = os.path.join(tmp, "try_all.db")
@@ -21,7 +37,9 @@ def main():
 
     rows = list(csv.DictReader(open(TRUTH, newline="", encoding="utf-8")))
     score = {"patient": [0, 0], "value": [0, 0], "tier": [0, 0]}
-    for r in rows:
+    for i, r in enumerate(rows):
+        if i:
+            time.sleep(3)  # pause between reports
         with open(os.path.join(REPORTS, r["file"]), "rb") as f:
             out = app.process_report(f.read(), "try_all", r["file"])
         with db.get_db() as conn:
