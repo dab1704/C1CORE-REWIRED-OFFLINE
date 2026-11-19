@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Nabz · Clinic inbox</title>
+  <link rel="stylesheet" href="/nabz/clinic.css">
+  <script src="/nabz/clinic.js" defer></script>
+</head>
+<body>
+  <header class="mast"><a href="/" class="wordmark">nabz<span>.</span></a><p id="server" role="status">Connecting to Flask…</p></header>
+  <main>
+    <section class="page-head">
+      <h1>Clinic <em>inbox.</em></h1>
+      <p>Review report screenshots and open patient history.</p>
+    </section>
+    <div class="workspace">
+      <section class="panel" aria-labelledby="queue-title">
+        <div class="panel-head"><h2 id="queue-title">Review queue</h2><button type="button" id="refresh" class="quiet">Refresh</button></div>
+        <p id="queue-message" role="status">Loading reports…</p>
+        <ul id="queue" class="records"></ul>
+      </section>
+      <div class="sidebar">
+        <section class="panel" aria-labelledby="intake-title">
+          <h2 id="intake-title">Upload a screenshot</h2>
+          <form id="upload">
+            <label for="report-file">Report image</label>
+            <input type="file" id="report-file" name="file" accept="image/*" required>
+            <button class="action" type="submit">Send to review</button>
+          </form>
+          <p id="upload-message" role="status"></p>
+          <div id="upload-result" hidden></div>
+        </section>
+        <section class="panel" aria-labelledby="patients-title">
+          <h2 id="patients-title">Patients</h2>
+          <label for="patients">Open patient history</label>
+          <select id="patients" disabled><option value="">Select a patient</option></select>
+          <p id="patients-message" role="status">Loading patients…</p>
+          <div id="patient-detail"></div>
+        </section>
+      </div>
+    </div>
+    <section class="panel proof" aria-labelledby="proof-title">
+      <div class="panel-head"><h2 id="proof-title">Arrival order vs Nabz order</h2><button type="button" id="compare" class="quiet">Show comparison</button></div>
+      <p id="proof-message" role="status"></p>
+      <div id="proof-result"></div>
+    </section>
+  </main>
+  <template id="report-template">
+    <li class="record">
+      <div class="record-heading"><h3></h3><span class="priority"></span></div>
+      <p class="metadata"></p><p class="finding"></p>
+      <details><summary>Review report</summary>
+        <p class="source-note"></p><img class="source-image" hidden alt="Original uploaded lab screenshot">
+        <label class="review-check"><input type="checkbox"> I checked the original screenshot.</label>
+        <button type="button" class="action confirm" disabled>Confirm reading</button>
+        <p class="confirm-message" role="status"></p>
+      </details>
+    </li>
+  </template>
+</body>
+</html>
