@@ -12,6 +12,12 @@ load_dotenv()
 MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 print(f"Using Gemini model: {MODEL}")
 
+# Dev-only: READER_MODE=fake in .env reads test_data/fake_readings.json, no API call
+FAKE = os.getenv("READER_MODE", "gemini").lower() == "fake"
+FAKE_FILE = "test_data/fake_readings.json"
+if FAKE:
+    print("FAKE READER ON")
+
 PROMPT = """You read a medical lab report image. Reply with JSON only, no prose:
 {"patient_name": string|null, "age": integer|null, "sex": "M"|"F"|null,
  "report_date": "YYYY-MM-DD"|null,
@@ -48,8 +54,16 @@ def clean(data):
     return data, dropped
 
 
-def read_image(image_bytes, mime="image/png"):
+def fake_read(filename):
+    # Look up the upload's file name; an unknown name raises, like a failed read
+    with open(FAKE_FILE, encoding="utf-8") as f:
+        return clean(json.load(f)[os.path.basename(filename or "")])
+
+
+def read_image(image_bytes, mime="image/png", filename=""):
     """Ask Gemini to read the image. Raises on any failure (caller handles)."""
+    if FAKE:
+        return fake_read(filename)
     client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"),
                           http_options=types.HttpOptions(timeout=30000))  # 30 s, in ms
     last = None

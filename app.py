@@ -1,4 +1,5 @@
 import io
+import math
 import os
 import uuid
 from datetime import date, datetime, timezone
@@ -76,7 +77,7 @@ def summary(conn, report_id, flags=()):
             "worst": worst, "flags": list(flags)}
 
 
-def process_report(image_bytes, source, message_id=None, caption="", ext=".png"):
+def process_report(image_bytes, source, message_id=None, caption="", ext=".png", filename=""):
     """Read one report image, store it, rate it, and return a summary."""
     with db.get_db() as conn:
         if message_id:  # same message twice? return the first answer
@@ -89,7 +90,7 @@ def process_report(image_bytes, source, message_id=None, caption="", ext=".png")
     status, data = "pending", None
     try:
         mime = Image.open(io.BytesIO(image_bytes)).get_format_mimetype()
-        data, dropped = reader.read_image(image_bytes, mime)
+        data, dropped = reader.read_image(image_bytes, mime, filename)
         if dropped:  # some tests could not be read as numbers
             status = "needs_review"
     except Exception as e:
@@ -153,9 +154,97 @@ def upload_report():
     except Exception:
         return error("That file is not a readable image.")
     try:
-        return jsonify(process_report(data, source, message_id, caption, ext=ext))
+        return jsonify(process_report(data, source, message_id, caption, ext=ext,
+                                      filename=f.filename))
     except Exception:
         return error("Could not process the report.", 500)
+
+
+# ---------- inbox, confirm, patient history ----------
+
+RANK = {"urgent": 0, "watch": 1, "routine": 2}  # lower number shows first
+
+
+def report_tests(conn, report_id):
+    # All tests of one report as plain dicts
+    rows = conn.execute("SELECT id, name, value, unit, range_low, range_high, level "
+                        "FROM test_results WHERE report_id = ? ORDER BY id", (report_id,))
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/inbox")
+def inbox():
+    # Every report: most urgent first, newest first inside a level
+    with db.get_db() as conn:
+        rows = conn.execute(
+            "SELECT r.id, r.patient_id, p.name AS patient_name, r.level,"
+            " r.status, r.source, r.received_at,"
+            " (SELECT text FROM messages m WHERE m.report_id = r.id LIMIT 1) AS caption"
+            " FROM reports r LEFT JOIN patients p ON p.id = r.patient_id").fetchall()
+        items = [dict(r, worst=rules.assess(report_tests(conn, r["id"]))["worst"])
+                 for r in rows]
+    items.sort(key=lambda i: i["received_at"] or "", reverse=True)
+    items.sort(key=lambda i: RANK.get(i["level"], 3))  # stable, keeps newest first
+    return jsonify(items)
+
+
+def valid_fixes(fixes, test_ids):
+    # Each fix must be {"id": a test of this report, "value": a finite number}
+    return all(isinstance(f, dict) and f.get("id") in test_ids
+               and isinstance(f.get("value"), (int, float))
+               and not isinstance(f["value"], bool) and math.isfinite(f["value"])
+               for f in fixes)
+
+
+@app.post("/api/reports/<int:rid>/confirm")
+def confirm_report(rid):
+    # A human confirms the reading. Optional body: {"tests": [{"id": 5, "value": 4.1}]}
+    fixes = (request.get_json(silent=True) or {}).get("tests", [])
+    if not isinstance(fixes, list):
+        return error("'tests' must be a list.")
+    with db.get_db() as conn:
+        rep = conn.execute("SELECT patient_id FROM reports WHERE id = ?", (rid,)).fetchone()
+        if not rep:
+            return error("Report not found.", 404)
+        if not valid_fixes(fixes, {t["id"] for t in report_tests(conn, rid)}):
+            return error("Each correction needs a test 'id' from this report and a numeric 'value'.")
+        for f in fixes:
+            conn.execute("UPDATE test_results SET value = ? WHERE id = ?", (f["value"], f["id"]))
+        flags = []
+        if fixes:  # corrected values can change the level, so rate the report again
+            tests = report_tests(conn, rid)
+            for t in tests:
+                conn.execute("UPDATE test_results SET level = ? WHERE id = ?",
+                             (rules.test_level(t), t["id"]))
+            msg = conn.execute("SELECT text FROM messages WHERE report_id = ?", (rid,)).fetchone()
+            history = db.patient_history(conn, rep["patient_id"]) if rep["patient_id"] else None
+            res = rules.assess(tests, msg["text"] if msg else "", history=history)
+            flags = res["flags"]
+            conn.execute("UPDATE reports SET level = ? WHERE id = ?", (res["level"], rid))
+        conn.execute("UPDATE reports SET status = 'confirmed' WHERE id = ?", (rid,))
+        out = summary(conn, rid, flags)
+        out["status"] = "confirmed"
+        return jsonify(out)
+
+
+@app.get("/api/patients/<int:pid>")
+def patient_detail(pid):
+    # One patient with every report, a value-over-time trend, and rising tests
+    with db.get_db() as conn:
+        p = conn.execute("SELECT id, name, age, sex FROM patients WHERE id = ?",
+                         (pid,)).fetchone()
+        if not p:
+            return error("Patient not found.", 404)
+        reports = []
+        for r in conn.execute("SELECT id, report_date, received_at, level, status FROM reports"
+                              " WHERE patient_id = ? ORDER BY report_date, id", (pid,)).fetchall():
+            reports.append(dict(r, tests=report_tests(conn, r["id"])))
+        history = db.patient_history(conn, pid)
+    trend = {}
+    for h in sorted(history, key=lambda h: h["date"]):
+        trend.setdefault(h["name"], []).append({"date": h["date"], "value": h["value"]})
+    return jsonify({"patient": dict(p), "reports": reports, "trend": trend,
+                    "rising": rules.rising_tests(history)})
 
 
 db.init_db()  # create tables on startup
