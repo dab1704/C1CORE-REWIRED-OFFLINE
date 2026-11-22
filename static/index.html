@@ -64,10 +64,11 @@
   <div class="scene atlas-scene">
     <figure class="atlas-stage">
       <img class="atlas-poster" alt="Blender render of a glass anatomical figure" src="/nabz/anatomy-poster.jpg">
+      <canvas class="atlas-orbit" id="atlas-orbit" width="440" height="420" hidden aria-hidden="true"></canvas>
       <canvas id="atlas-canvas" tabindex="0" aria-label="Glass anatomy. Drag or use the left and right arrows to orbit. Tap a region to select."></canvas>
       <aside class="atlas-card" id="atlas-region" hidden aria-live="polite"><small>Anatomy reference</small><h3 id="atlas-label"></h3><p id="atlas-description"></p></aside>
     </figure>
-    <div class="copy"><h2 id="atlas-title">The shape of a <em>human.</em></h2><p>Drag to rotate. Point to or tap a region to see what it does.</p><div class="feature-actions"><button type="button" id="atlas-layer" class="line-action" aria-pressed="false">Show bones</button><a class="feature-link" href="#atlas-canvas">Focus anatomy viewer <span aria-hidden="true">↗</span></a></div></div>
+    <div class="copy"><h2 id="atlas-title">The shape of a <em>human.</em></h2><p id="atlas-instructions">Drag to rotate. Point to or tap a region to see what it does.</p><div class="feature-actions"><button type="button" id="atlas-layer" class="line-action" aria-pressed="false">Show bones</button><a class="feature-link" href="#atlas-canvas">Focus anatomy viewer <span aria-hidden="true">↗</span></a></div></div>
     <aside class="atlas-purpose"><h3>Why the anatomy viewer is here</h3><p>It gives the clinic team a shared visual reference when talking about a body region. The viewer sits alongside the report workflow as an educational aid.</p></aside>
   </div>
 </section>

@@ -219,7 +219,8 @@ if(gate.matches)finishOpening();else playIntro();
 
 const atlasCanvas=document.getElementById('atlas-canvas');
 const atlasStage=document.querySelector('.atlas-stage');
-const atlasPoster=document.querySelector('.atlas-poster');
+const atlasOrbit=document.getElementById('atlas-orbit');
+const atlasInstructions=document.getElementById('atlas-instructions');
 const atlasLabel=document.getElementById('atlas-label');
 const atlasSwitch=document.getElementById('atlas-layer');
 const atlasCard=document.getElementById('atlas-region');
@@ -416,21 +417,70 @@ function sizeAtlas(){
   atlasCanvas.width=Math.round(rect.width*quality);atlasCanvas.height=Math.round(rect.height*quality);
   atlasState.resize(atlasCanvas.width,atlasCanvas.height);requestAtlas();
 }
+async function loadAtlasOrbit(){
+  const layers=await Promise.all(['muscles','bones'].map(async name=>{
+    const image=new Image();
+    image.src='/nabz/anatomy-orbit-'+name+'.jpg';
+    await image.decode();
+    return image;
+  }));
+  const context=atlasOrbit.getContext('2d');
+  const {width,height}=atlasOrbit;
+  let previous=-1;
+  atlasState={
+    parts:[],
+    resize(){},
+    draw(angle,pitch,bones){
+      const turn=Math.round((angle-.1)*12/Math.PI);
+      const frame=((turn%24)+24)%24;
+      const layer=Number(bones);
+      const index=layer*24+frame;
+      if(index!==previous){
+        context.drawImage(layers[layer],(frame%6)*width,Math.floor(frame/6)*height,width,height,0,0,width,height);
+        previous=index;
+      }
+      return 0;
+    }
+  };
+  atlasOrbit.hidden=false;
+  atlasStage.classList.add('orbit');
+  atlasInstructions.textContent='Drag or use the arrow keys to rotate. Switch between muscles and bones.';
+  atlasCanvas.setAttribute('aria-label',atlasInstructions.textContent);
+  atlasLoaded=true;
+  requestAtlas();
+}
+async function recoverAtlas(error){
+  atlasError=error.message;
+  atlasStage.classList.remove('live');
+  atlasCard.hidden=true;
+  atlasLoaded=false;
+  atlasState=null;
+  console.warn('Glass anatomy preview:',atlasError);
+  try{
+    await loadAtlasOrbit();
+  }catch(fallbackError){
+    atlasSwitch.hidden=true;
+    atlasInstructions.textContent='The interactive viewer could not load. Refresh to try again.';
+    console.warn('Anatomy rotation preview:',fallbackError.message);
+  }
+}
 async function initAtlas(){
   if(anatomyLoading||atlasLoaded)return;
   anatomyLoading=true;
   try{
+    if(typeof DecompressionStream==='undefined')throw Error('Mesh decompression unavailable');
     const gl=atlasCanvas.getContext('webgl2',{alpha:false,antialias:false,powerPreference:'high-performance'});
     if(!gl)throw Error('WebGL2 unavailable');
     const model=await fetch('/nabz/anatomy-mesh.bin');
     if(!model.ok||!model.body)throw Error('Anatomy mesh unavailable');
     const binary=await new Response(model.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
     atlasState=makeAtlas(gl,binary,[["bone", 0, 766614, 763974], ["other", 4589124, 948312, 946074], ["thigh", 10270044, 106812, 106530], ["arm", 10909788, 154188, 153972], ["posterior", 11834052, 60720, 60498], ["core", 12197484, 570804, 604332], ["chest", 15756420, 46680, 46386], ["back", 16035324, 181932, 181620], ["calf", 17125668, 65724, 65640], ["shoulder", 17519676, 14220, 14352]]);
-    atlasLoaded=true;atlasStage.classList.add('live');sizeAtlas();
-    atlasCanvas.addEventListener('webglcontextlost',()=>{atlasStage.classList.remove('live');atlasCard.hidden=true;});
+    sizeAtlas();
+    atlasLoaded=true;
+    atlasStage.classList.add('live');
+    atlasCanvas.addEventListener('webglcontextlost',()=>recoverAtlas(Error('WebGL context lost')),{once:true});
   }catch(error){
-    atlasError=error.message;atlasCard.hidden=true;atlasSwitch.hidden=true;
-    console.warn('Glass anatomy preview:',error.message);
+    await recoverAtlas(error);
   }
 }
 new IntersectionObserver(([entry])=>{
@@ -453,6 +503,7 @@ atlasCanvas.addEventListener('pointermove',event=>{
     if(Math.abs(delta)>5)drag.moved=true;
     if(drag.moved){orbitYaw=drag.angle+delta*.010;pointerYaw=0;pointerPitch=0;pointerNormal=null;requestAtlas();return;}
   }
+  if(atlasStage.classList.contains('orbit'))return;
   pointerNormal=pointerAt(event);
   if(!gate.matches&&event.pointerType==='mouse'){pointerYaw=(pointerNormal.x-.5)*.26;pointerPitch=(.5-pointerNormal.y)*.13;}
   requestAtlas();

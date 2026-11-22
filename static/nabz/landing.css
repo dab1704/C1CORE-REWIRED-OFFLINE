@@ -386,3 +386,7 @@ header#top .logo small{color:var(--mustard)}
   .verification-workbench{cursor:default}
   #trend-bars .bar-body{animation:none}
 }
+
+.atlas-stage.orbit .atlas-orbit{opacity:1;pointer-events:none;mix-blend-mode:screen}
+.atlas-stage.orbit .atlas-poster{opacity:0}
+.atlas-stage.orbit #atlas-canvas{opacity:0}
