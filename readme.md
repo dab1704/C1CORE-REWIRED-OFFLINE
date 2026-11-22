@@ -1,12 +1,40 @@
-Nabz: lab reports, followed through
+# Nabz · Lab reports, followed through
 
-Team C1CORE (BMS Institute of Technology and Management, Bengaluru) · Rewired offline round, 19 Nov 2026 · Theme B: MIRROR
+**First place at the REWIRED 2026 offline hackathon** · Theme B: MIRROR · 19 November 2026
+
+Built by **Team C1CORE** at BMS Institute of Technology and Management, Bengaluru. The team was **Debangshu Banerjee** (captain), **Mayank Prakash**, **Aditya**, and **Prakash**.
 
 	
 Live demo	https://nabz-egua.onrender.com (free hosting: the first load after idle can take about a minute)
 Demo video (2 min)	add link here
 Source	this repository
-The problem
+## UI/UX walkthrough
+
+The prototype screenshots below use synthetic cases.
+
+### Landing
+
+![Nabz landing page with the pulse wordmark](docs/ui/landing.png)
+
+### Clinic inbox
+
+![Clinic workspace with a blood-red urgency palette](docs/ui/clinic-inbox.png)
+
+The clinic inbox brings the review queue and urgency heatmap into one workspace.
+
+### Verify the original
+
+![Source lab screenshot paired with the extracted fields in the interactive verifier](docs/ui/report-verification.png)
+
+Select an extracted field to find it on the source report before confirming the reading.
+
+### Queue comparison
+
+![Comparison cards pairing arrival rank with Nabz review rank](docs/ui/queue-comparison.png)
+
+Each card shows how the same report moves from arrival order to review order.
+
+## The problem
 
 In India a patient's lab report usually reaches the doctor as a WhatsApp screenshot or a photo of a screen. A busy clinic gets them all day, and the doctor reads them in the order they arrive. A potassium of 6.8 can sit below a pile of normal reports. There is no record, no trend over time, and the patient's symptom message is a separate chat bubble.
 
